@@ -91,6 +91,10 @@
   html[data-theme="dark"] .lvl-m{background:#16222E;color:#A5BBCF;border-color:#3A5570}
   html[data-theme="dark"] .lvl-f{background:#2A1A14;color:#D3A98F;border-color:#7A4B32}
   html[data-theme="dark"] .lvl-p{background:#201C2E;color:#C3B4DE;border-color:#5A4E7A}
+  /* Graded/laddered offense. A single grade colour LIES about a ladder — Theft
+     is not "a misdemeanor", it is Class C through 1st-degree felony. Gold says:
+     this SCALES, read the range. */
+  html[data-theme="dark"] .lvl-l{background:#2A2413;color:#E8CE8A;border-color:#7A6524}
   html[data-theme="dark"] .street-label{color:#E4D48C}
   mark{
     background:none;
@@ -592,6 +596,7 @@
   .b-basis{color:#7A5A10;border-color:var(--gold);background:#FBF6E4}
   .b-city{color:#1F5C4A;border-color:#8FC9B4;background:#EAF6F1}
   .lvl-p{background:#F1EEF7;color:#4A3A66;border:1px solid #AFA3C6}
+  .lvl-l{background:#FBF3DE;color:#6B5312;border:1px solid #D9BE73}
   /* offense level badges */
   .lvl{
     font-family:'IBM Plex Mono',monospace;
@@ -2319,7 +2324,7 @@ function renderOrdinances(){
         <div class="badges">
           ${favStarHTML("ordinance", o.ord)}
           <span class="badge b-city">${o.city || "Frisco, TX"}</span>
-          <span class="badge b-basis">${o.level}</span>
+          <span class="lvl lvl-${o.lvlClass || "c"}">${o.level}</span>
         </div>
       </div>
       <p class="holding">${hl(o.summary, HLTo)}</p>

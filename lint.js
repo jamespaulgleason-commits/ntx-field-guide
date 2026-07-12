@@ -106,7 +106,7 @@ if (DATA) {
   const circuitIds = idset("CIRCUITS");                 // includes "all"
   const validCourt = new Set(["scotus", ...circuitIds]);
   const validCode = new Set(["penal", "transpo", "hsc", "ccp"]);
-  const knownLvl = new Set(["f", "m", "c", "p"]);
+  const knownLvl = new Set(["f","m","c","p","l"]);
 
   const SPEC = {
     CASES:      { key:"name", req:["name","cite","court","std","tags","holding","street"],
@@ -192,6 +192,72 @@ if (DATA) {
       warn("BUILD: no sw.js next to index.html — cannot verify the cache key matches the build stamp");
     }
     if (/-dirty/.test(stamp)) warn("BUILD: built from a dirty working tree — commit before deploying so the stamp identifies the source");
+  }
+
+  /* ---- Penalty-ladder integrity ----
+     The `level` badge is what an officer reads before anything else. If the
+     statute can reach a grade higher than `level` names, the guide understates
+     the offense — that is how a felony gets worked as a ticket. This compares
+     `level` against the grades ASSIGNED in the entry's own verbatim text and
+     fails the build on a mismatch. Same principle as the cache-version guard:
+     make the regression impossible rather than remembering not to cause it. */
+  {
+    const ORDER=["MC","MB","MA","SJF","F3","F2","F1","CAP"];
+    const NM={MC:"Class C",MB:"Class B",MA:"Class A",SJF:"state jail felony",F3:"3rd-degree",F2:"2nd-degree",F1:"1st-degree",CAP:"capital felony"};
+    const TXT=[["CAP",/capital felony/i],["F1",/felony of the first degree/i],["F2",/felony of the second degree/i],
+      ["F3",/felony of the third degree/i],["SJF",/state jail felony/i],["MA",/Class A misdemeanor/i],
+      ["MB",/Class B misdemeanor/i],["MC",/Class C misdemeanor/i]];
+    /* The level field uses shorthand: "2nd with prior", "F3 against elderly",
+       "Class C / B / A". Match all of it, or the guard fires on correct entries
+       and gets ignored — a false alarm is worse than no alarm. */
+    const LVL=[["CAP",/capital/i],["F1",/\b1st\b|\bfirst[- ]degree|\bF1\b/i],["F2",/\b2nd\b|\bsecond[- ]degree|\bF2\b/i],
+      ["F3",/\b3rd\b|\bthird[- ]degree|\bF3\b/i],["SJF",/state jail|\bSJF\b/i],
+      ["MA",/Class A|\/ ?A\b/i],["MB",/Class B|\/ ?B\b/i],["MC",/Class C|\/ ?C\b/i]];
+    const XREF=/offense (solicited|attempted|conspired|committed)|one category (lower|higher)|same (degree|category) as/i;
+    const topOf=(str,tbl)=>{let best=-1;
+      for(const [k,re] of tbl){ if(re.test(str||"")) best=Math.max(best,ORDER.indexOf(k)); }
+      return best;};
+    const statTop=t=>{ if(!t) return -1; const s=t.replace(/\s+/g," "); let best=-1;
+      for(const [k,re] of TXT){ const g=new RegExp(re.source,"gi"); let m;
+        while((m=g.exec(s))){ const b=s.slice(Math.max(0,m.index-140),m.index);
+          if(XREF.test(b.slice(-90))) continue;
+          if(/\bdefense\b|affirmative defense/i.test(b.slice(-70))) continue;
+          best=Math.max(best,ORDER.indexOf(k)); } }
+      return best;};
+    let bad=0;
+    for(const arr of ["STATUTES","ORDINANCES"]){
+      for(const e of (DATA[arr]||[])){
+        if(!e.text||!e.level) continue;
+        if(e.lvlClass==="p") continue;                 // procedure/reference, not an offense
+        /* Relative-grade offenses (conspiracy, organized criminal activity, terrorism,
+           drug-free-zone enhancements) borrow their grade from the underlying offense.
+           "One category lower than the object felony" is CORRECT and must not be
+           forced into a fixed range. */
+        if(/one (category|grade) (lower|higher)|punishment enhancement/i.test(e.level)) continue;
+        const st=statTop(e.text), lv=topOf(e.level,LVL);
+        if(st<0||lv<0) continue;
+        if(st>lv){ bad++;
+          err(`PENALTY: ${e.sec||e.ord} level says "${e.level.slice(0,46)}" but the text assigns up to a ${NM[ORDER[st]]} — level understates the offense`); }
+      }
+    }
+    if(!bad) console.log("\n=== Penalty ladders ===\n  every level covers the highest grade its text assigns ✓");
+
+    /* ---- Ordinance badge tier ----
+       A municipal ordinance violation is punishable by FINE ONLY. Badging it "m"
+       paints it the same blue as a Class A/B misdemeanor, which is jailable and
+       arrestable. That overstates the offense to an officer scanning the list.
+       Fine-only -> "c". Only an ordinance that actually adopts a state-law Class
+       A/B grade may be "m", and if it spans C->A it is a ladder ("l"). */
+    let obad=0;
+    for(const o of (DATA.ORDINANCES||[])){
+      if(o.lvlClass==="p") continue;
+      const jailable=/Class [AB]\b/i.test(o.level||"");
+      if(o.lvlClass==="m" && !jailable){ obad++;
+        err(`ORDINANCE TIER: ${o.ord} is badged "m" (jailable misdemeanor) but its level states no Class A/B grade — a fine-only municipal violation should be "c"`); }
+      if(o.lvlClass==="c" && jailable){ obad++;
+        err(`ORDINANCE TIER: ${o.ord} is badged "c" but its level reaches a Class A/B grade — should be "l" (ladder) or "m"`); }
+    }
+    if(!obad) console.log("  ordinance badges match their actual penalty tier ✓");
   }
 
   /* ---- Report ---- */
