@@ -255,6 +255,18 @@
   }
   .global-search-inner-clear:hover{background:rgba(255,255,255,.14);color:var(--gold-pale)}
   .global-search-inner-clear:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
+  /* type="search" makes Chrome/Safari draw their OWN clear button — so the box
+     showed TWO ×'s: the browser's and ours. Ours is the styled one, positioned
+     where we want it and wired to clearGlobalSearchOnly(). Kill the native. */
+  .global-search-box::-webkit-search-cancel-button,
+  .global-search-box::-webkit-search-decoration,
+  .global-search-box::-webkit-search-results-button,
+  .global-search-box::-webkit-search-results-decoration{
+    -webkit-appearance:none;
+    appearance:none;
+    display:none;
+  }
+  .global-search-box::-ms-clear{display:none;width:0;height:0}   /* legacy Edge/IE */
   .global-search-clear{
     flex:none;
     display:inline-flex;
@@ -1542,12 +1554,18 @@ const SYN_GROUPS = [
   ["upskirt","upskirting","upskirts","up-skirt","up skirt"],
   ["grooming","groomed","online solicitation","enticing a child"]
 ];
-const STOPWORDS = new Set(["a","an","the","and","or","of","to","in","on","at","my","me","i","he","she","they","was","is","are","for","from","with","during","after","before","while","when","then","who","what","that","this","his","her","their","it","up","out","into","about","suspect","person","guy","subject","male","female","someone","individual","officer","officers","police","cop","cops","law","how","much","many","does","do","did","can","could","should","would","will","may","might","need","needed","have","has","had","am","be","been","being","if","so","just","get","got","also","there","here","you","your","yours","we","our","us","them","him","not","no","yes","all","any","some"]);
+const STOPWORDS = new Set(["a","an","the","and","or","of","to","in","on","at","my","me","i","he","she","they","was","is","are","for","from","with","during","after","before","while","when","then","who","what","that","this","his","her","their","it","up","out","into","about","suspect","person","persons","people","guy","guys","man","men","woman","women","dude","subject","male","female","someone","somebody","anyone","anybody","individual","actor","party","officer","officers","police","cop","cops","law","how","much","many","does","do","did","can","could","should","would","will","may","might","need","needed","have","has","had","am","be","been","being","if","so","just","get","got","also","there","here","you","your","yours","we","our","us","them","him","not","no","yes","all","any","some"]);
 function expandTerm(t){
   const g = SYN_GROUPS.find(g => g.includes(t));
   return g ? g : [t];
 }
 function esc(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+/* Prefix match, boundary at the START only. Deliberate: it lets "stole" find
+   "stolen" and "fire" find "firearm". A length rule was tried here to stop short
+   words behaving like wildcards and it REGRESSED the eval — it also killed
+   "fire" -> "firearm" (Deadly Conduct). Length is the wrong discriminator: "man"
+   is noise, "fire" and "gun" are not. The filler words are handled in STOPWORDS
+   instead, which is where they belong. */
 function termHits(hay, alt){
   if (new RegExp('\\b'+esc(alt), 'i').test(hay)) return true;
   for (const suf of ["ing","ed","es","s","d"]){
@@ -1647,7 +1665,7 @@ const CASE_KEYWORDS = {
   "Caniglia v. Strom":"community caretaking guns handguns welfare check suicidal seize",
   "Lange v. California":"misdemeanor hot pursuit garage music horn entry dui",
   "Kentucky v. King":"knock and talk destruction of evidence smell marijuana exigent apartment wrong",
-  "Arizona v. Gant":"search incident vehicle reaching distance secured suspended license cocaine jacket",
+  "Arizona v. Gant":"search incident to arrest vehicle reaching distance secured handcuffed cuffed in the back seat of the patrol car already in custody can I still search the car after arresting the driver locked in the back seat no longer within reach suspended license cocaine jacket",
   "Miranda v. Arizona":"custody custodial interrogation warnings rights silent counsel waiver",
   "Riley v. California":"cell phone search incident warrant digital gang photos",
   "Carpenter v. United States":"csli cell site location information cell tower records historical location data phone company records place a suspect somewhere warrant required third party doctrine limit tracking movements over time",
@@ -2748,7 +2766,7 @@ const SEM_ENABLED = EMBED_DIM > 0 && EMBED_VECS_B64.length > 0;
    been empirically calibrated against real embeddings (none exist yet in
    this build) — recalibrate against the eval query set once they do, before
    relying on this for real callouts. */
-const SEM_THRESHOLD = 0.35; // calibrated 2026-07-08 from a 35-query eval against all-MiniLM-L6-v2: correct matches clustered 0.35-0.73; below 0.35 was mostly noise. Raising this cuts good hits; lowering it admits junk.
+const SEM_THRESHOLD = 0.25; // re-swept 2026-07-12 against EVAL-QUERIES.txt: 0.20/0.25/0.30/0.35 all score 30/30, so the tighter gate bought nothing and shut out correct-but-weak matches (Burglary scored 0.22-0.33 on "broke into ... and stole"). Semantic sits in the 250-750 band, below strong keyword matches, so a looser gate adds tail results rather than displacing good ones.
 const SEM_MAX_EXTRA_PER_GROUP = 3; // cap on semantic-only additions per group
 
 /* ---- Ranking knobs, swept against EVAL-QUERIES.txt (35 officer-phrased queries).
@@ -2916,8 +2934,16 @@ const GLOBAL_SEARCH_SOURCES = [
   {
     type:"statute", groupLabel:"State Codes", list: () => STATUTES,
     haystack: s => (s.sec + " " + s.name + " " + s.summary + " " + s.level + " " + s.street.join(" ") + " " + (s.text || "") + " " + (s.kw || "") + " " + s.cats.map(catLabel).join(" ")).toLowerCase(),
+    /* kw carries weight 4 — above the summary, below the name. It is CURATED
+       vocabulary: someone deliberately wrote "threatened to shoot up the school"
+       onto Terroristic Threat. Leaving it out of rel meant that, whenever several
+       entries all matched every term (the flat all-terms tier), the tiebreak
+       ignored the one signal we hand-authored to say "this is the right entry".
+       Terroristic Threat ranked 4th behind Magistrate's Order on a school-shooting
+       threat because of exactly that. */
     rel: (s, q) => relScore(q, [
       [(s.sec + " " + s.name).toLowerCase(), 6],
+      [(s.kw || "").toLowerCase(), 4],
       [(s.summary + " " + s.level).toLowerCase(), 2],
       [(s.street.join(" ") + " " + (s.text || "")).toLowerCase(), 1]
     ]),
@@ -2925,9 +2951,10 @@ const GLOBAL_SEARCH_SOURCES = [
   },
   {
     type:"arrest", groupLabel:"Warrantless Arrest", list: () => ARREST,
-    haystack: a => (a.art + " " + a.name + " " + a.summary + " " + a.basis + " " + (a.text || "") + " " + a.street.join(" ") + " " + a.tags.map(arrestCatLabel).join(" ")).toLowerCase(),
+    haystack: a => (a.art + " " + a.name + " " + a.summary + " " + a.basis + " " + (a.text || "") + " " + a.street.join(" ") + " " + (a.kw || "") + " " + a.tags.map(arrestCatLabel).join(" ")).toLowerCase(),
     rel: (a, q) => relScore(q, [
       [(a.art + " " + a.name).toLowerCase(), 6],
+      [(a.kw || "").toLowerCase(), 4],
       [(a.summary + " " + a.basis).toLowerCase(), 2],
       [(a.street.join(" ") + " " + (a.text || "")).toLowerCase(), 1]
     ]),
@@ -2949,7 +2976,8 @@ const GLOBAL_SEARCH_SOURCES = [
     rel: (o, q) => relScore(q, [
       [(o.ord + " " + o.name).toLowerCase(), 6],
       [o.summary.toLowerCase(), 2],
-      [(o.street.join(" ") + " " + (o.text || "") + " " + (o.kw || "")).toLowerCase(), 1]
+      [(o.kw || "").toLowerCase(), 4],
+      [(o.street.join(" ") + " " + (o.text || "")).toLowerCase(), 1]
     ]),
     keyOf: o => o.ord, name: o => o.name, sub: o => o.ord, snip: o => o.summary,
   },
