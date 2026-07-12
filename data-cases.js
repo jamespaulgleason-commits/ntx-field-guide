@@ -81,5 +81,309 @@ const CASES = [
   { name:"Cole v. Carson", cite:"935 F.3d 444 (5th Cir. 2019) (en banc)", court:"ca5", std:null, tags:["uof"], holding:"Where material facts are genuinely disputed — for example, whether a suicidal teenager pointed a gun at officers, or whether a warning was given before deadly force — a jury, not the court, must resolve them; denial of qualified immunity was affirmed. Emphasizes that giving a warning before deadly force, where feasible, is a critical component of the reasonableness analysis.", street:["Give a warning before deadly force when it's feasible to do so — courts treat this as a key reasonableness factor.","Disputed facts about what the suspect was actually doing at the moment of the shooting go to a jury, not to summary judgment — thorough, contemporaneous documentation matters more, not less, when facts are contested."] },
   { name:"Argueta v. Jaradi", cite:"86 F.4th 1084 (5th Cir. 2023)", court:"ca5", std:null, tags:["uof","flee"], holding:"Panel granted qualified immunity to an officer who shot a fleeing suspect. A vigorous dissent from denial of rehearing en banc argued the panel had overlooked genuinely disputed material facts. Illustrates this circuit's fact-specific, officer-protective application of qualified immunity in shooting cases.", street:["Reflects the Fifth Circuit's general pattern of resolving close factual disputes in favor of qualified immunity for officers in fleeing-suspect shootings.","The strong dissent signals this area of law is contested even within the circuit — don't assume every fleeing-suspect shooting will be treated the same way on similar facts elsewhere."] },
   { name:"United States v. Pack", cite:"612 F.3d 341 (5th Cir. 2010), modified on reh'g, 622 F.3d 383 (5th Cir. 2010)", court:"ca5", std:"rs", tags:["traffic","terry"], holding:"The leading published Fifth Circuit authority applying Rodriguez: reasonable suspicion — extreme nervousness, conflicting stories between occupants, travel on a known drug corridor, combined with officer experience — permits detaining a driver beyond the traffic stop's original mission (here, to conduct a canine sniff). This remains the go-to published circuit case for what facts justify prolonging a stop.", street:["This is the case to cite for prolonging a stop for a K-9 — not United States v. Gonzalez (below), which is unpublished and non-precedential.","Extreme nervousness alone rarely carries a stop; combine it with inconsistent stories, a known-corridor factor, and articulate your training/experience basis for each observation.","Document the exact timeline: when the traffic mission ended, and precisely what new facts developed before you extended the stop."] },
-  { name:"United States v. Nora", cite:"No. 12-50485 (9th Cir. Aug. 28, 2014)", court:"ca9", std:"warrant", tags:["entry","arrest"], holding:"Officers surrounded a home and, after a standoff, used a loudspeaker to order the occupant out at gunpoint; he complied and was arrested in the yard. Held: physically taking a suspect into custody outside the home does not avoid Payton v. New York when it was accomplished only by surrounding the house and ordering the person out — that is an in-home arrest requiring a warrant or an exception. No exigency existed here (the underlying offense was a misdemeanor, and the house was fully surrounded with no realistic chance of escape). Evidence from the pat-down search and the post-arrest statements was suppressed as fruit of the unlawful arrest, and the search warrant for the home was invalidated because the untainted remaining evidence did not support probable cause for most of what it authorized.", street:["\"Surround the house and order them out\" is legally an in-home arrest under Payton, even though the handcuffs go on in the yard — get a warrant or make sure a real exception applies first.","A misdemeanor charge alone will rarely support the exigency needed to skip the warrant — this court called that combination the deciding factor.","This is a Ninth Circuit (California) decision — persuasive, not binding, in Texas, Louisiana, or Mississippi, but the underlying Payton \"constructive in-home arrest\" doctrine is a Supreme Court rule that applies nationwide, so the reasoning is worth knowing regardless of circuit.","A warrant built partly on tainted evidence isn't automatically void — but here, once the tainted evidence was stripped out, what remained didn't support the broad firearms search the warrant authorized."] }
-];
+  { name:"United States v. Nora", cite:"No. 12-50485 (9th Cir. Aug. 28, 2014)", court:"ca9", std:"warrant", tags:["entry","arrest"], holding:"Officers surrounded a home and, after a standoff, used a loudspeaker to order the occupant out at gunpoint; he complied and was arrested in the yard. Held: physically taking a suspect into custody outside the home does not avoid Payton v. New York when it was accomplished only by surrounding the house and ordering the person out — that is an in-home arrest requiring a warrant or an exception. No exigency existed here (the underlying offense was a misdemeanor, and the house was fully surrounded with no realistic chance of escape). Evidence from the pat-down search and the post-arrest statements was suppressed as fruit of the unlawful arrest, and the search warrant for the home was invalidated because the untainted remaining evidence did not support probable cause for most of what it authorized.", street:["\"Surround the house and order them out\" is legally an in-home arrest under Payton, even though the handcuffs go on in the yard — get a warrant or make sure a real exception applies first.","A misdemeanor charge alone will rarely support the exigency needed to skip the warrant — this court called that combination the deciding factor.","This is a Ninth Circuit (California) decision — persuasive, not binding, in Texas, Louisiana, or Mississippi, but the underlying Payton \"constructive in-home arrest\" doctrine is a Supreme Court rule that applies nationwide, so the reasoning is worth knowing regardless of circuit.","A warrant built partly on tainted evidence isn't automatically void — but here, once the tainted evidence was stripped out, what remained didn't support the broad firearms search the warrant authorized."] },
+  {
+    name:"Atwater v. City of Lago Vista", cite:"532 U.S. 318 (2001)", court:"scotus", std:"pc", tags:["traffic","arrest"],
+    holding:"The Fourth Amendment does not forbid a warrantless custodial arrest for a minor criminal offense punishable only by a fine. If an officer has probable cause to believe a person has committed even a very minor criminal offense in his presence, he may arrest without violating the Fourth Amendment. The case arose from a Texas seatbelt arrest.",
+    street:[
+      "The Fourth Amendment ALLOWS a custodial arrest on a fine-only offense — it does not require one, and it does not override state law.",
+      "TEXAS LIMITS THIS: Transp. Code § 543.004 MANDATES release on a written notice to appear for three offences — speeding, texting while driving (§ 545.4251), and open container (§ 49.031). Atwater does not authorize what the Legislature has forbidden.",
+      "Check the specific statute before you book on a fine-only offense. Constitutional does not mean lawful under Texas law."
+    ]
+  },
+  {
+    name:"Chimel v. California", cite:"395 U.S. 752 (1969)", court:"scotus", std:"pc", tags:["arrest","entry"],
+    holding:"A search incident to arrest is limited to the arrestee's person and the area within his immediate control — the space from which he might grab a weapon or destructible evidence. It does not authorize a top-to-bottom search of the house.",
+    street:[
+      "Arm's reach, at the moment of the arrest. Not the next room, not the whole house.",
+      "Want more than that inside a home? Get a warrant, or articulate a separate exception (sweep, exigency, consent).",
+      "Read with Buie (protective sweep) and Gant (vehicles) — each is a different, narrower authority."
+    ]
+  },
+  {
+    name:"Payton v. New York", cite:"445 U.S. 573 (1980)", court:"scotus", std:"warrant", tags:["entry","arrest"],
+    holding:"Absent consent or exigent circumstances, police may not make a warrantless, nonconsensual entry into a suspect's home to make a routine felony arrest. An arrest warrant, founded on probable cause, implicitly carries the limited authority to enter a dwelling in which the suspect lives when there is reason to believe he is within.",
+    street:[
+      "An ARREST warrant lets you into the suspect's OWN home, if you reasonably believe he is inside.",
+      "It does not let you into someone else's home to look for him — that needs a search warrant (Steagald).",
+      "No warrant, no consent, no exigency = no entry. The threshold is the line."
+    ]
+  },
+  {
+    name:"Maryland v. Buie", cite:"494 U.S. 325 (1990)", court:"scotus", std:"rs", tags:["entry","arrest"],
+    holding:"During an in-home arrest, officers may as a precaution and without any suspicion look in closets and spaces immediately adjoining the place of arrest from which an attack could be launched. A broader protective sweep requires a reasonable belief, based on specific and articulable facts, that the area harbors an individual posing a danger.",
+    street:[
+      "Two tiers: (1) immediately adjoining spaces — no suspicion needed; (2) anywhere else — articulable facts that someone dangerous is there.",
+      "A sweep is a cursory look for PEOPLE, not a search for evidence. You may not open drawers.",
+      "It lasts only as long as needed to dispel the danger. Say what made you think a person was there."
+    ]
+  },
+  {
+    name:"Michigan v. Long", cite:"463 U.S. 1032 (1983)", court:"scotus", std:"rs", tags:["traffic","terry"],
+    holding:"Officers may search the passenger compartment of a vehicle, limited to areas where a weapon may be placed or hidden, when they possess a reasonable belief based on specific and articulable facts that the suspect is dangerous and may gain immediate control of a weapon. In effect, a Terry frisk of the car.",
+    street:[
+      "This is a frisk of the CAR, not a search for evidence. Weapons only, places a weapon could be.",
+      "You need articulable facts the person is dangerous AND could reach the weapon — including on return to the car.",
+      "Anything found in plain view during a lawful Long frisk is seizable. Do not go beyond weapon-sized spaces."
+    ]
+  },
+  {
+    name:"Minnesota v. Dickerson", cite:"508 U.S. 366 (1993)", court:"scotus", std:"rs", tags:["terry","arrest"],
+    holding:"If, during a lawful Terry patdown, an officer feels an object whose contour or mass makes its identity as contraband immediately apparent, he may seize it — the 'plain feel' doctrine. But continued exploration, squeezing, or manipulating a pocket after concluding the object is not a weapon exceeds Terry and the seizure is unlawful.",
+    street:[
+      "'Immediately apparent' means immediately. The moment you decide it is not a weapon and keep feeling, you are done.",
+      "Squeezing, sliding, rolling it between your fingers to figure out what it is = an unlawful search.",
+      "Articulate what you felt and why it was instantly recognizable as contraband."
+    ]
+  },
+  {
+    name:"Carroll v. United States", cite:"267 U.S. 132 (1925)", court:"scotus", std:"pc", tags:["traffic","arrest"],
+    holding:"The automobile exception: because a vehicle is readily mobile, officers with probable cause to believe it contains contraband or evidence of a crime may search it without a warrant. The search may extend to any part of the vehicle and any container within it that could hold the object of the search.",
+    street:[
+      "Probable cause replaces the warrant — but you still need the probable cause. Articulate it.",
+      "Scope follows the object: PC for a stolen TV does not open the glovebox. PC for drugs opens almost everything.",
+      "The car must be readily mobile. Collins v. Virginia: this does NOT let you walk onto the curtilage of a home to search a vehicle parked there."
+    ]
+  },
+  {
+    name:"Illinois v. Caballes", cite:"543 U.S. 405 (2005)", court:"scotus", std:"rs", tags:["traffic","consent"],
+    holding:"A dog sniff of the exterior of a vehicle during a lawful traffic stop is not a Fourth Amendment search, and requires no independent suspicion — so long as it does not unreasonably prolong the stop.",
+    street:[
+      "No reasonable suspicion needed for the sniff itself. But the CLOCK is the whole ballgame.",
+      "Read with Rodriguez: you may not extend the stop by even a de minimis amount to run the dog.",
+      "If the dog is not there when the mission is done, the stop is over. Let him go or develop independent RS."
+    ]
+  },
+  {
+    name:"Florida v. Jardines", cite:"569 U.S. 1 (2013)", court:"scotus", std:"warrant", tags:["entry"],
+    holding:"Taking a drug-detection dog onto the front porch of a home to sniff for narcotics is a Fourth Amendment search. The implied license that lets any visitor approach the door and knock does not include bringing a trained dog there to hunt for evidence.",
+    street:[
+      "A dog at a car window is not a search (Caballes). A dog on the porch IS. The curtilage is the difference.",
+      "You may knock and talk — anyone may do that. You may not bring the dog up to the door to investigate.",
+      "Objective test: it is about what the officer physically did on the curtilage, not what he was thinking."
+    ]
+  },
+  {
+    name:"Brendlin v. California", cite:"551 U.S. 249 (2007)", court:"scotus", std:"rs", tags:["traffic","terry"],
+    holding:"When police make a traffic stop, a passenger — not just the driver — is seized for Fourth Amendment purposes and may therefore challenge the constitutionality of the stop.",
+    street:[
+      "Everyone in the car is seized. A passenger has standing to attack YOUR reason for the stop.",
+      "That means a bad stop taints what you find on the passenger too, not just the driver.",
+      "It also means passengers are lawfully detained — you can require them to stay (Maryland v. Wilson)."
+    ]
+  },
+  {
+    name:"Arizona v. Johnson", cite:"555 U.S. 323 (2009)", court:"scotus", std:"rs", tags:["traffic","terry"],
+    holding:"During a lawful traffic stop, an officer may frisk a passenger for weapons if he has reasonable suspicion that the passenger is armed and dangerous. Questioning a passenger about matters unrelated to the stop does not convert it into an unlawful seizure, so long as it does not measurably extend the stop's duration.",
+    street:[
+      "A frisk of a passenger needs its OWN reasonable suspicion that THAT person is armed and dangerous.",
+      "Being a passenger in a stopped car is not, by itself, a reason to frisk anyone.",
+      "You may ask unrelated questions — but not if they add time. Rodriguez still governs the clock."
+    ]
+  },
+  {
+    name:"Knowles v. Iowa", cite:"525 U.S. 113 (1998)", court:"scotus", std:"pc", tags:["traffic","arrest"],
+    holding:"An officer who issues a citation instead of making an arrest may not conduct a full search of the vehicle incident to that citation. The rationales for search incident to arrest — officer safety and evidence preservation — do not carry over to a citation.",
+    street:[
+      "Cite-and-release does NOT give you a search incident to arrest. No arrest, no SITA.",
+      "You still have: a Long frisk of the car with articulable danger, plain view, consent, or the automobile exception with PC.",
+      "If you want the search, you need a real basis for it — not just the ticket in your hand."
+    ]
+  },
+  {
+    name:"Kyllo v. United States", cite:"533 U.S. 27 (2001)", court:"scotus", std:"warrant", tags:["entry","digital"],
+    holding:"Using a device not in general public use to explore details of a home that would previously have been unknowable without physical intrusion is a search, and is presumptively unreasonable without a warrant. Thermal imaging of a home is such a search.",
+    street:[
+      "Sense-enhancing technology aimed at the inside of a home = a search. Get a warrant.",
+      "The rule keys on the HOME. The same tech pointed at a warehouse or a car is a different analysis.",
+      "Cited constantly by analogy for new tech. When in doubt about a novel sensor and a house — warrant."
+    ]
+  },
+  {
+    name:"Schmerber v. California", cite:"384 U.S. 757 (1966)", court:"scotus", std:"pc", tags:["traffic","arrest"],
+    holding:"A compelled blood draw is a Fourth Amendment search of the person. It was upheld here on exigency: an accident, time spent investigating and transporting, and alcohol dissipating from the blood. It is not a blanket rule.",
+    street:[
+      "The foundation for every blood-draw case since. Read it WITH McNeely — Schmerber is fact-bound, not a per se rule.",
+      "The exigency was the crash plus the delay, not just the alcohol burning off.",
+      "Blood is a search of the BODY. Treat it that way."
+    ]
+  },
+  {
+    name:"Missouri v. McNeely", cite:"569 U.S. 141 (2013)", court:"scotus", std:"warrant", tags:["traffic","arrest"],
+    holding:"The natural dissipation of alcohol in the bloodstream does not, by itself, create a per se exigency justifying a warrantless blood draw. Whether one exists is decided case by case on the totality of the circumstances.",
+    street:[
+      "'The alcohol is burning off' is NOT an exigency by itself. That argument is dead.",
+      "If you can reasonably get a warrant, get one. Telephonic and electronic warrants are why the Court expects it.",
+      "Document what actually stopped you from getting a warrant — time, distance, manpower, the scene."
+    ]
+  },
+  {
+    name:"Birchfield v. North Dakota", cite:"579 U.S. 438 (2016)", court:"scotus", std:"pc", tags:["traffic","arrest"],
+    holding:"A DWI arrest, standing alone, justifies a warrantless BREATH test as a search incident to arrest — but not a warrantless BLOOD test. Blood is more intrusive and yields a preservable sample.",
+    street:[
+      "Breath: yes, incident to arrest. Blood: NO — get a warrant or a real exception.",
+      "A State may not make it a crime to refuse a warrantless BLOOD test. It may criminalise refusing a breath test.",
+      "Implied consent does not equal Fourth Amendment consent to a needle."
+    ]
+  },
+  {
+    name:"Mitchell v. Wisconsin", cite:"588 U.S. 840 (2019)", court:"scotus", std:"pc", tags:["traffic"],
+    holding:"Plurality: when a drunk-driving suspect is unconscious and cannot be given a breath test, exigent circumstances will generally permit a warrantless blood draw — because BAC evidence is dissipating and the medical emergency creates competing, pressing demands.",
+    street:[
+      "Unconscious driver + no breath test possible = usually exigent. But it is a presumption, not a licence.",
+      "It did NOT overrule McNeely. A conscious suspect in a routine DWI still means: get a warrant.",
+      "Say why you could not get a warrant — the hospital, the scene, the manpower."
+    ]
+  },
+  {
+    name:"Michigan Dept. of State Police v. Sitz", cite:"496 U.S. 444 (1990)", court:"scotus", std:null, tags:["traffic"],
+    holding:"Brief, suspicionless stops at a properly conducted sobriety checkpoint are reasonable under the Fourth Amendment; the State's interest in combating drunk driving outweighs the slight intrusion.",
+    street:[
+      "NOTE FOR TEXAS: Texas does NOT authorise DWI checkpoints. Sitz permits them federally; Texas courts have not.",
+      "Do not rely on this to run a checkpoint here. Know your agency's policy and Texas law first.",
+      "A checkpoint aimed at general crime control is unconstitutional anyway (Edmond)."
+    ]
+  },
+  {
+    name:"City of Indianapolis v. Edmond", cite:"531 U.S. 32 (2000)", court:"scotus", std:null, tags:["traffic"],
+    holding:"A vehicle checkpoint whose primary purpose is general crime control — here, narcotics interdiction — is unconstitutional. Checkpoints must serve a purpose beyond the ordinary detection of criminal wrongdoing.",
+    street:[
+      "A roadblock to find drugs is unconstitutional. A roadblock for DWI or the border is a different analysis.",
+      "The PRIMARY PURPOSE is what the court examines. Do not dress up a drug checkpoint as a licence check."
+    ]
+  },
+  {
+    name:"Delaware v. Prouse", cite:"440 U.S. 648 (1979)", court:"scotus", std:"rs", tags:["traffic"],
+    holding:"Officers may not stop a vehicle at random, with no reasonable suspicion, merely to check the driver's licence and registration.",
+    street:[
+      "No random stops 'just to check the paperwork.' You need reasonable suspicion or a legitimate checkpoint.",
+      "A hunch about the car or the neighbourhood is not reasonable suspicion. Say what you SAW."
+    ]
+  },
+  {
+    name:"Rhode Island v. Innis", cite:"446 U.S. 291 (1980)", court:"scotus", std:null, tags:["interrog","arrest"],
+    holding:"For Miranda purposes, 'interrogation' means express questioning OR any words or actions by police that they should know are reasonably likely to elicit an incriminating response. It focuses on the perceptions of the suspect, not the intent of the officer.",
+    street:[
+      "You do not have to ask a question to 'interrogate.' A remark designed to get a reaction counts.",
+      "The test is what YOU should have known would draw a response — not what you meant.",
+      "Spontaneous, unprompted statements are not the product of interrogation. Document that they were unprompted."
+    ]
+  },
+  {
+    name:"New York v. Quarles", cite:"467 U.S. 649 (1984)", court:"scotus", std:null, tags:["interrog","arrest"],
+    holding:"There is a public-safety exception to Miranda. Where there is an objectively reasonable need to protect the police or the public from an immediate danger — here, a gun hidden in a supermarket — an officer may ask questions directed at that danger before giving warnings, and the answers are admissible.",
+    street:[
+      "'Where's the gun?' before Miranda is fine when there is a real, immediate danger. Narrow and specific.",
+      "It is limited to neutralising the threat. The moment you shift to building the case, warn him.",
+      "It is OBJECTIVE — you do not have to be thinking about safety, but the facts must show the danger."
+    ]
+  },
+  {
+    name:"Davis v. United States", cite:"512 U.S. 452 (1994)", court:"scotus", std:null, tags:["interrog"],
+    holding:"A suspect must invoke the right to counsel unambiguously. If a reasonable officer would understand only that the suspect MIGHT want a lawyer, questioning need not stop, and officers are not required to ask clarifying questions.",
+    street:[
+      "'Maybe I should get a lawyer' is not an invocation. 'I want a lawyer' is.",
+      "You are not REQUIRED to clarify — but clarifying is the safer practice, and it protects the statement.",
+      "Once he clearly asks for counsel, stop. Do not talk him out of it."
+    ]
+  },
+  {
+    name:"Berghuis v. Thompkins", cite:"560 U.S. 370 (2010)", court:"scotus", std:null, tags:["interrog"],
+    holding:"Silence alone does not invoke the right to remain silent. A suspect must invoke it unambiguously. And a suspect who understands his rights and then makes an uncoerced statement has waived them by his conduct.",
+    street:[
+      "Sitting silent for hours is not an invocation. He has to SAY he is invoking.",
+      "A single incriminating answer after a knowing waiver is admissible even after long silence.",
+      "Get the waiver clean and on record anyway. TEXAS: CCP Art. 38.22 imposes recording rules Miranda does not."
+    ]
+  },
+  {
+    name:"Illinois v. Perkins", cite:"496 U.S. 292 (1990)", court:"scotus", std:null, tags:["interrog"],
+    holding:"Miranda warnings are not required when a suspect who is unaware that he is speaking to a law enforcement officer gives a voluntary statement — an undercover agent in a jail cell. The coercive atmosphere Miranda guards against is absent.",
+    street:[
+      "No warnings needed for an undercover or a jailhouse informant, because there is no police-dominated pressure.",
+      "It changes once he is charged — the Sixth Amendment right to counsel is a separate rule.",
+      "Voluntariness still matters. Coercion by anyone can sink the statement."
+    ]
+  },
+  {
+    name:"Harris v. New York", cite:"401 U.S. 222 (1971)", court:"scotus", std:null, tags:["interrog"],
+    holding:"A statement taken in violation of Miranda, but otherwise voluntary, may be used to impeach the defendant's credibility if he takes the stand and testifies inconsistently — though not in the prosecution's case in chief.",
+    street:[
+      "A Miranda-defective but VOLUNTARY statement is not worthless — it can impeach him if he testifies.",
+      "A statement that was actually COERCED is worthless for everything. Voluntariness is the line.",
+      "Do not treat this as a reason to skip warnings. You lose the case in chief."
+    ]
+  },
+  {
+    name:"J.D.B. v. North Carolina", cite:"564 U.S. 261 (2011)", court:"scotus", std:null, tags:["interrog"],
+    holding:"A child's age is a relevant factor in the Miranda custody analysis when it was known to the officer or objectively apparent. A juvenile may reasonably feel he is not free to leave in circumstances where an adult would not.",
+    street:[
+      "Age counts in the custody test. A 13-year-old in a closed school office may be in custody when an adult would not be.",
+      "It is objective — you do not have to guess at his maturity, only account for the age you knew or could see.",
+      "When it is a juvenile, the safer course is to warn."
+    ]
+  },
+  {
+    name:"Illinois v. Gates", cite:"462 U.S. 213 (1983)", court:"scotus", std:"pc", tags:["arrest","entry"],
+    holding:"Probable cause is judged on the totality of the circumstances, not a rigid two-pronged test. An informant's veracity, reliability, and basis of knowledge are relevant and interlocking factors — a deficiency in one can be compensated by a strong showing of another, or by corroboration. Probable cause means a fair probability, not a certainty.",
+    street:[
+      "Corroborate the tip. Independent police work is what turns an anonymous letter into probable cause.",
+      "You do not need to prove the informant is reliable AND how he knows — a strong showing on one can carry a weak one on the other.",
+      "'Fair probability.' Not proof, not more likely than not. But more than a hunch."
+    ]
+  },
+  {
+    name:"Franks v. Delaware", cite:"438 U.S. 154 (1978)", court:"scotus", std:"warrant", tags:["entry","arrest"],
+    holding:"If a defendant shows that the affiant knowingly and intentionally, or with reckless disregard for the truth, included a false statement in a warrant affidavit — and the false statement was necessary to probable cause — the warrant is voided and the fruits suppressed.",
+    street:[
+      "Do not overstate. Do not omit what cuts against you. A reckless affidavit gets the whole warrant thrown out.",
+      "This is the case they use to attack YOUR affidavit. Write it like it will be read line by line, because it will be.",
+      "An honest mistake is not a Franks violation. A knowing or reckless falsehood is."
+    ]
+  },
+  {
+    name:"United States v. Leon", cite:"468 U.S. 897 (1984)", court:"scotus", std:"warrant", tags:["entry","arrest"],
+    holding:"Evidence obtained by officers acting in objectively reasonable, good-faith reliance on a search warrant later found to lack probable cause is not subject to the federal exclusionary rule.",
+    street:[
+      "Federal good-faith exception for a defective WARRANT. It does not save a warrantless search.",
+      "It does not apply if the affidavit was so lacking that no reasonable officer would rely on it, or if you misled the magistrate.",
+      "TEXAS IS NARROWER: CCP Art. 38.23(b) has only a limited good-faith exception. Do not assume Leon saves you in state court."
+    ]
+  },
+  {
+    name:"Mapp v. Ohio", cite:"367 U.S. 643 (1961)", court:"scotus", std:null, tags:["entry","arrest"],
+    holding:"The Fourth Amendment exclusionary rule applies to the States through the Fourteenth Amendment. Evidence obtained by an unconstitutional search or seizure is inadmissible in state court.",
+    street:[
+      "This is why an unlawful search costs you the case, not just a reprimand.",
+      "TEXAS GOES FURTHER: CCP Art. 38.23 excludes evidence obtained in violation of ANY law — including by private citizens."
+    ]
+  },
+  {
+    name:"Hudson v. Michigan", cite:"547 U.S. 586 (2006)", court:"scotus", std:"warrant", tags:["entry"],
+    holding:"Violation of the knock-and-announce rule does not require suppression of the evidence found inside. The interests protected by knock-and-announce have nothing to do with the seizure of the evidence.",
+    street:[
+      "A knock-and-announce violation will not, by itself, suppress the evidence in federal court.",
+      "That is NOT permission to stop knocking. It is still a Fourth Amendment requirement, and it is still a civil-liability and policy problem.",
+      "TEXAS: Art. 38.23 is broader than the federal rule. Do not assume Hudson protects you in a state prosecution."
+    ]
+  },
+  {
+    name:"Horton v. California", cite:"496 U.S. 128 (1990)", court:"scotus", std:"pc", tags:["entry","arrest"],
+    holding:"Inadvertence is not a necessary condition of a plain-view seizure. If an officer is lawfully in a position to view an item, its incriminating character is immediately apparent, and he has a lawful right of access to it, he may seize it — even if he expected to find it.",
+    street:[
+      "Three elements: lawfully there, incriminating nature immediately apparent, lawful access to it.",
+      "You do NOT have to be surprised. Expecting to find it does not defeat plain view.",
+      "'Immediately apparent' means without further searching. Moving an object to read its serial number is a search (Hicks)."
+    ]
+  },
+  {
+    name:"Hiibel v. Sixth Judicial District Court of Nevada", cite:"542 U.S. 177 (2004)", court:"scotus", std:"rs", tags:["terry","arrest"],
+    holding:"A state may require a suspect lawfully detained on reasonable suspicion to disclose his name, and may criminalise the refusal. The request must be reasonably related to the circumstances justifying the stop. Disclosing a name does not, on these facts, violate the Fifth Amendment.",
+    street:[
+      "You may compel a NAME during a lawful Terry stop — if the state has a statute requiring it.",
+      "TEXAS IS NARROWER: Penal Code § 38.02(a) only requires a name, address, and DOB from a person who has been lawfully ARRESTED. A detainee commits no offence by refusing to identify — but he may not give a FALSE name (§ 38.02(b)).",
+      "Know the difference. Arresting a mere detainee for refusing to give a name is a false arrest in Texas."
+    ]
+  }
+]
+;
