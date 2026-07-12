@@ -112,6 +112,14 @@
   html[data-theme="dark"] .gradeladder .gl-note,html[data-theme="dark"] .verify-note,html[data-theme="dark"] .verbatim .vpending{color:#D9A778}
   html[data-theme="dark"] .verbatim .vtext{color:var(--ink)}
   html[data-theme="dark"] header{background:#000}
+  /* The sticky bar MUST get the same dark-mode override the header gets.
+     In dark mode --navy is not a background at all — it is repurposed as a
+     bright accent (#5E8DCB) — so the light-mode gradient rendered as a glaring
+     light-blue band across the top of the screen. Flat black, matching header. */
+  html[data-theme="dark"] .stickybar{
+    background:#000;
+    box-shadow:0 6px 18px rgba(0,0,0,.6);
+  }
   html[data-theme="dark"] .oplink:hover{color:#E9DCB0}
   html[data-theme="dark"] .gradeladder td{border-bottom-color:var(--rule)}
   html[data-theme="dark"] .showmore-all{color:#0A1826}
@@ -362,8 +370,47 @@
   header{
     background:linear-gradient(180deg,var(--navy-deep) 0%,var(--navy) 100%);
     color:#EDEAE0;
+    padding:30px clamp(16px,3vw,40px) 18px;   /* gold rule now lives on .stickybar */
+  }
+  /* ---------- Sticky search + tabs ----------
+     Keeps the one control an officer actually needs — the search box — on screen
+     no matter how far down a 787-entry list they have scrolled. The title and
+     subtitle are read once and then only cost vertical space, so they scroll away.
+     z-index sits above page content but BELOW the settings button (40) and the
+     modal overlay, so neither gets buried. */
+  .stickybar{
+    position:sticky;
+    top:0;
+    z-index:30;
+    background:linear-gradient(180deg,var(--navy) 0%,var(--navy-deep) 100%);
     border-bottom:4px solid var(--gold);
-    padding:30px clamp(16px,3vw,40px) 0;
+    padding:12px clamp(16px,3vw,40px) 0;
+    box-shadow:0 6px 18px rgba(0,0,0,.28);
+  }
+  .stickybar .global-search-wrap{margin-top:0}
+  .stickybar .tabs{margin-top:12px}
+  /* Tighter once pinned — reclaims vertical space on a phone. */
+  .stickybar.pinned{padding-top:8px}
+  .stickybar.pinned .tabs{margin-top:8px}
+  /* On a phone the 7 tabs wrap to 4 rows, and an un-compacted sticky bar ate 27%
+     of the viewport — a quarter of the screen permanently gone on the device that
+     can least afford it. Once pinned, shrink the chrome (not the tap targets:
+     min-height keeps every tab >= 32px, comfortably thumb-sized). */
+  @media (max-width:720px){
+    .stickybar.pinned{padding-top:6px}
+    .stickybar.pinned .global-search-box{padding-top:9px;padding-bottom:9px;font-size:14px}
+    .stickybar.pinned .global-search-clear{padding:8px 10px;font-size:10px}
+    .stickybar.pinned .tabs{margin-top:6px;gap:3px}
+    .stickybar.pinned .tab{
+      padding:7px 9px;
+      font-size:10px;
+      letter-spacing:.04em;
+      min-height:32px;          /* keep the tap target honest */
+      display:flex;align-items:center;
+    }
+  }
+  @media (prefers-reduced-motion: no-preference){
+    .stickybar{transition:padding .15s ease}
   }
   .hwrap{width:100%;margin:0;position:relative}
   .eyebrow{
@@ -841,6 +888,15 @@
     </div>
     <h1 id="homeTitle" style="cursor:pointer" title="Return to Case Lookup, reset filters">Texas Case Law &amp; Offense Code Search</h1>
     <p class="subtitle">Pick your circuit and call types to pull controlling case law, or look up state penal and traffic offenses — each with street-level takeaways.</p>
+  </div>
+</header>
+
+<!-- Sticky bar. This MUST live outside <header>: position:sticky pins an element
+     within its scrolling ancestor, so a sticky child of <header> would simply
+     scroll away when the header did. As its own body-level element it pins to
+     the viewport, and the title/subtitle scroll underneath it. -->
+<div class="stickybar" id="stickyBar">
+  <div class="hwrap">
     <div class="global-search-wrap">
       <div class="global-search-input-wrap">
         <input type="search" id="globalSearch" class="global-search-box" placeholder="Search everything — statutes, cases, ordinances, doctrines, arrest guides&hellip;" aria-label="Search all content" autocomplete="off">
@@ -859,7 +915,7 @@
       <button class="tab" id="tabFavorites" role="tab" aria-selected="false">&#9733; Favorites</button>
     </nav>
   </div>
-</header>
+</div>
 
 <div id="feedbackOverlay" class="feedback-overlay" hidden>
   <div id="feedbackDialog" class="feedback-dialog" role="dialog" aria-modal="true" aria-labelledby="feedbackTitle">
@@ -1690,6 +1746,27 @@ function setTab(activeBtnId){
     document.getElementById(t.view).classList.toggle("active", on);
   });
   if (activeBtnId === "tabFavorites" && typeof renderFavorites === "function") renderFavorites();
+
+  /* With a sticky tab bar you can now switch tabs from ANYWHERE on the page.
+     Without this you'd land 2,800px deep in the new tab's list — or past its
+     end entirely, staring at a footer. Scroll back to the top of the content,
+     just under the pinned bar. */
+  const bar = document.getElementById("stickyBar");
+  if (bar && bar.classList.contains("pinned")){
+    /* Scroll to the bar's NATURAL position so the new tab's content starts right
+       under it. Do NOT use bar.offsetTop: on a position:sticky element that
+       returns the CURRENT shifted offset, which once pinned equals scrollY —
+       making scrollTo a no-op. The header's height is the static answer. */
+    const hdr = document.querySelector("header");
+    const y = hdr ? hdr.offsetHeight : 0;
+    /* Defer past the view swap. Chrome's SCROLL ANCHORING sees the content above
+       the viewport change when we toggle .active and "helpfully" re-adjusts
+       scrollY to preserve the visual position — which silently undid our scroll
+       (it landed at 623 instead of 157). Two frames puts us after that. */
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      window.scrollTo({ top: y, behavior: "auto" });
+    }));
+  }
 }
 TABS.forEach(t => document.getElementById(t.btn).addEventListener("click", () => setTab(t.btn)));
 
@@ -3022,6 +3099,20 @@ function clearGlobalSearchOnly(){
   globalSearchInnerClear.hidden = true;
   runGlobalSearchCycle("");
 }
+/* Compact the sticky bar once it is actually pinned. A sentinel above it is
+   cheaper and smoother than a scroll listener — no work on every scroll frame. */
+(function(){
+  const bar = document.getElementById("stickyBar");
+  if (!bar || !("IntersectionObserver" in window)) return;
+  const sentinel = document.createElement("div");
+  sentinel.style.cssText = "position:absolute;top:0;height:1px;width:1px;pointer-events:none";
+  bar.parentNode.insertBefore(sentinel, bar);
+  new IntersectionObserver(
+    ([e]) => bar.classList.toggle("pinned", !e.isIntersecting),
+    { threshold: 0 }
+  ).observe(sentinel);
+})();
+
 globalSearchInput.addEventListener("input", () => {
   const q = globalSearchInput.value.trim();
   globalSearchInnerClear.hidden = globalSearchInput.value.length === 0;
