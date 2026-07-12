@@ -329,7 +329,6 @@
   html[data-filterside="left"]  .global-search-clear{ order:-1; }   /* Clear at the left end of the bar */
   html[data-filterside="right"] .global-search-clear{ order:1; }    /* Clear at the right end of the bar */
   html[data-filterside="right"] .global-search-wrap{ margin-left:auto; }  /* shift the whole bar to the right */
-  html[data-filterside="right"] .top-btn{ left:auto; right:16px; }  /* Back-to-top on the right */
   /* ---------- Favorites ---------- */
   .favstar{
     background:none;
@@ -389,6 +388,122 @@
   }
   .stickybar .global-search-wrap{margin-top:0}
   .stickybar .tabs{margin-top:12px}
+  /* ---------- Tab menu ----------
+     Once pinned, the 7-tab row (100px desktop / 154px phone) collapses to one
+     button. That height goes straight back to the content and the filter panel.
+     It sits on the same side as the filter panel, so it stays under the thumb. */
+  /* Menu and Back-to-top are INLINE members of the search row — same line as the
+     search box and Reset All. Costs no extra bar height, and (crucially) the
+     back-to-top no longer floats over the content. */
+  .tabmenu{display:none;position:relative;flex:0 0 auto}
+  .stickybar.pinned .tabs{display:none}
+  .stickybar.pinned .tabmenu{display:block}
+  /* Reset All sits at one end; menu and Back-to-top at the OTHER, so the controls
+     bracket the search box instead of crowding one corner. */
+  html[data-filterside="left"]  .global-search-clear{order:-1}
+  html[data-filterside="left"]  .bar-top-btn{order:2}
+  html[data-filterside="left"]  .tabmenu{order:3}
+  html[data-filterside="right"] .tabmenu{order:-3}
+  html[data-filterside="right"] .bar-top-btn{order:-2}
+  html[data-filterside="right"] .global-search-clear{order:2}
+  /* Back-to-top, docked in the bar. Was position:fixed and sat ON TOP of the
+     filter panel's checkboxes (desktop) and directly on body text (phone) —
+     a floating button always covers something when there is no gutter to put it in. */
+  .bar-top-btn{
+    display:none;flex:0 0 auto;
+    background:rgba(255,255,255,.08);
+    border:1px solid var(--navy-line);
+    color:var(--gold-pale);
+    font-family:'IBM Plex Mono',monospace;font-size:14px;line-height:1;
+    padding:0 12px;min-height:38px;border-radius:3px;cursor:pointer;
+  }
+  .bar-top-btn:hover{background:rgba(255,255,255,.16)}
+
+  /* ---------- Floating back-to-top ----------
+     A position:fixed button ALWAYS covers whatever is beneath it — the old one
+     sat on the filter panel's checkboxes and on body text, which is why it was
+     pulled. The page runs edge-to-edge, so there is no natural gutter to hide it
+     in. The fix is to RESERVE one: pad the view on the side opposite the filter
+     panel by more than the button's footprint, so the text column simply never
+     reaches that strip. It cannot obstruct what cannot get under it. */
+  .top-fab{
+    display:none;
+    position:fixed; bottom:20px; z-index:25;
+    background:var(--navy-deep); color:var(--gold-pale);
+    border:1px solid var(--navy-line);
+    font-family:'IBM Plex Mono',monospace; font-size:15px; line-height:1;
+    min-height:40px; padding:0 14px; border-radius:3px; cursor:pointer;
+    box-shadow:0 2px 12px var(--shadow);
+    opacity:0; visibility:hidden; transform:translateY(6px);
+    transition:opacity .2s ease, transform .2s ease, visibility .2s;
+  }
+  .top-fab:hover{background:var(--navy)}
+  .top-fab:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+  .top-fab.show{opacity:1;visibility:visible;transform:translateY(0)}
+  /* opposite the filter panel */
+  html[data-filterside="left"]  .top-fab{right:20px}
+  html[data-filterside="right"] .top-fab{left:20px}
+
+  @media (min-width:900px){
+    .top-fab{display:block}
+    .stickybar .bar-top-btn{display:none !important}   /* one button, not two */
+    /* The reserved lane. 78px > button (about 44px) + its 20px offset. */
+    html[data-filterside="left"]  .view.active{padding-right:78px}
+    html[data-filterside="right"] .view.active{padding-left:78px}
+  }
+  .bar-top-btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+  .stickybar.pinned .bar-top-btn{display:block}   /* only meaningful once scrolled */
+  .tabmenu-btn{
+    display:flex;align-items:center;gap:9px;
+    background:rgba(255,255,255,.08);
+    border:1px solid var(--navy-line);
+    color:#EDEAE0;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;
+    padding:9px 14px;border-radius:3px;cursor:pointer;min-height:38px;
+  }
+  .tabmenu-btn:hover{background:rgba(255,255,255,.14)}
+  .tabmenu-btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+  .tabmenu-btn .caret{font-size:9px;opacity:.85}
+  .tabmenu-list{
+    position:absolute;top:calc(100% + 6px);z-index:60;
+    min-width:230px;
+    background:var(--card);
+    border:1px solid var(--rule);
+    border-top:3px solid var(--gold);
+    box-shadow:0 12px 30px rgba(0,0,0,.35);
+    padding:4px 0;
+  }
+  /* The dropdown opens back INTO the bar, never off-screen. */
+  html[data-filterside="left"]  .tabmenu-list{right:0}
+  html[data-filterside="right"] .tabmenu-list{left:0}
+  .global-search-wrap{align-items:center;flex-wrap:wrap}
+  /* On a phone, four controls in one row squeezed the search box to 84px (54px on
+     a 360px screen) — unusable. Give the search field its own full-width line and
+     let Reset / Top / Menu share the line beneath it, still bracketing correctly:
+     Reset at one end, Menu at the other. Desktop keeps the single inline row. */
+  @media (max-width:760px){
+    .global-search-input-wrap{flex:1 0 100%;order:0}
+    .global-search-wrap{justify-content:space-between;row-gap:8px}
+    html[data-filterside="left"]  .global-search-clear{order:1}
+    html[data-filterside="left"]  .bar-top-btn{order:2}
+    html[data-filterside="left"]  .tabmenu{order:3}
+    html[data-filterside="right"] .tabmenu{order:1}
+    html[data-filterside="right"] .bar-top-btn{order:2}
+    html[data-filterside="right"] .global-search-clear{order:3}
+    .tabmenu-btn #tabMenuLabel{max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  }
+  .tabmenu-item{
+    display:block;width:100%;text-align:left;
+    background:none;border:none;cursor:pointer;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--ink);
+    padding:10px 16px;min-height:40px;
+  }
+  .tabmenu-item:hover{background:var(--street-bg)}
+  .tabmenu-item[aria-current="true"]{color:var(--navy);font-weight:600;background:var(--verbatim-bg)}
+  html[data-theme="dark"] .tabmenu-item[aria-current="true"]{color:#8FB6E8}
   /* Tighter once pinned — reclaims vertical space on a phone. */
   .stickybar.pinned{padding-top:8px}
   .stickybar.pinned .tabs{margin-top:8px}
@@ -474,14 +589,19 @@
   .view{display:none}
   .view.active{display:grid;grid-template-columns:308px minmax(0,1fr);gap:28px;align-items:start;width:100%;padding:26px clamp(16px,3vw,40px) 60px;flex:1 0 auto}
   /* ---------- Call sheet (filters) ---------- */
+  /* --bar-h is the LIVE height of the sticky bar, published by JS (it differs
+     pinned vs unpinned, and across breakpoints). Without it the panel pinned at
+     top:16px and its own header sat BEHIND the bar — "eaten", as reported. */
   .callsheet{
     background:var(--card);
     border:1px solid var(--rule);
     border-top:4px solid var(--gold);
     position:sticky;
-    top:16px;
-    max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);
+    top:calc(var(--bar-h, 16px) + 12px);
+    max-height:calc(100vh - var(--bar-h, 0px) - 24px);
+    max-height:calc(100dvh - var(--bar-h, 0px) - 24px);
     overflow-y:auto;
+    overscroll-behavior:contain;
   }
   .cs-head{
     padding:14px 16px 12px;
@@ -506,6 +626,13 @@
   }
   .cs-clear:hover,.cs-clear:focus-visible{color:var(--navy)}
   .cs-section{padding:14px 16px;border-bottom:1px solid var(--rule)}
+  /* Tighten the call sheet's own chrome so the filter list itself gets the room.
+     Five sections x 8px of reclaimed padding is 40px — which is the difference
+     between State Codes (the densest tab, 27 categories) fitting or not. */
+  @media (min-width:1150px){
+    .cs-section{padding:10px 16px}
+    .cs-note{margin-top:5px;line-height:1.4}
+  }
   .cs-section:last-child{border-bottom:none}
   .cs-label{
     font-family:'IBM Plex Mono',monospace;
@@ -533,7 +660,7 @@
   }
   .chk{
     display:flex;
-    align-items:flex-start;
+    align-items:center;
     gap:9px;
     padding:5px 4px;
     cursor:pointer;
@@ -550,6 +677,15 @@
   }
   .chk input:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
   .chk span{font-size:13.5px;font-weight:500;color:var(--ink);min-width:0;overflow-wrap:break-word}
+  /* Filter labels stay at 13.5px — READABILITY WINS.
+     They were briefly dropped to 12.5px to squeeze the panel onto one screen,
+     but that fit only ever existed on a 900px-tall viewport. The real target is
+     a ~640px browser window, where the panel needs a short internal scroll
+     regardless. Shrinking the type bought nothing there and cost legibility in
+     a sunlit patrol car — so it is reverted. The panel is sticky and always on
+     screen; a little scroll inside it is the right trade. */
+  #callTypes .chk span,#codeCats .chk span,#arrestCats .chk span,
+  #doctrineCats .chk span,#ordinanceCats .chk span{font-size:13.5px;line-height:1.4}
   .chk small{display:block;font-weight:400;color:var(--ink-soft);font-size:11.5px}
   .btnrow{display:flex;gap:6px;flex-wrap:wrap}
   .fbtn{
@@ -719,7 +855,7 @@
   #callTypes,#codeCats,#arrestCats,#doctrineCats,#ordinanceCats{
     display:grid;
     grid-template-columns:repeat(2,minmax(0,1fr));
-    gap:2px 8px;
+    gap:0 10px;
     align-items:start;
   }
   #callTypes .chk small,#codeCats .chk small,#arrestCats .chk small,#doctrineCats .chk small,#ordinanceCats .chk small{font-size:10.5px;line-height:1.35}
@@ -797,18 +933,6 @@
   .verbatim[open] summary{border-bottom:1px solid var(--rule)}
   .verbatim .vtext{padding:12px 16px;font-size:13px;line-height:1.65;font-family:'Spectral',serif;color:var(--ink)}
   .verbatim .vpending{padding:12px 16px;font-size:12.5px;color:#8A4B1F;font-style:italic}
-  .top-btn{
-    position:fixed; left:16px; bottom:16px; z-index:20;
-    background:var(--navy-deep); color:var(--gold-pale);
-    border:1px solid var(--navy-line);
-    font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.06em; text-transform:uppercase;
-    padding:9px 14px; border-radius:3px; cursor:pointer;
-    box-shadow:0 2px 10px var(--shadow);
-    opacity:0; visibility:hidden; transform:translateY(8px);
-    transition:opacity .2s ease, transform .2s ease, visibility .2s;
-  }
-  .top-btn.show{ opacity:1; visibility:visible; transform:translateY(0); }
-  .top-btn:hover{ background:var(--navy); }
   .notice{
     background:var(--notice-bg);
     border:1px solid var(--gold);
@@ -875,6 +999,16 @@
     .page,.view.active{grid-template-columns:340px minmax(0,1fr)}
     html[data-filterside="right"] .view.active{grid-template-columns:minmax(0,1fr) 340px}
   }
+  /* At 308px the two category columns are only 133px wide, so 25 of 27 labels
+     wrapped to 2-3 lines — chips averaged 55px when a single line is 31px. That
+     wrapping alone cost ~400px of panel height. Widening the panel lets the
+     labels sit on one line, which is what actually makes the panel fit on screen.
+     The content column gives up ~60px; the filter list stops needing a scrollbar. */
+  @media (min-width:1150px){
+    .callsheet{width:400px}
+    .page,.view.active{grid-template-columns:400px minmax(0,1fr)}
+    html[data-filterside="right"] .view.active{grid-template-columns:minmax(0,1fr) 400px}
+  }
 </style>
 </head>
 <body>
@@ -903,6 +1037,13 @@
         <button type="button" id="globalSearchInnerClear" class="global-search-inner-clear" aria-label="Clear search box" title="Clear search box" hidden>&times;</button>
       </div>
       <button type="button" id="globalSearchClear" class="global-search-clear" title="Clear the search box and every tab's filters">Reset All</button>
+      <button type="button" id="topBtnBar" class="bar-top-btn" aria-label="Back to top" title="Back to top">&uarr;</button>
+      <div class="tabmenu" id="tabMenu">
+        <button type="button" class="tabmenu-btn" id="tabMenuBtn" aria-haspopup="menu" aria-expanded="false">
+          <span id="tabMenuLabel">Case Law</span><span class="caret">&#9660;</span>
+        </button>
+        <div class="tabmenu-list" id="tabMenuList" role="menu" hidden></div>
+      </div>
       <div id="globalSearchResults" class="global-search-results" role="listbox" aria-label="Search results" hidden></div>
     </div>
     <nav class="tabs" role="tablist">
@@ -914,6 +1055,7 @@
       <button class="tab" id="tabTraining" role="tab" aria-selected="false">Training</button>
       <button class="tab" id="tabFavorites" role="tab" aria-selected="false">&#9733; Favorites</button>
     </nav>
+
   </div>
 </div>
 
@@ -981,7 +1123,6 @@
   </div>
 </div>
 
-<button id="topBtn" class="top-btn" aria-label="Back to top" title="Back to top">&uarr; Top</button>
 
 <!-- ==================== CASE LAW VIEW ==================== -->
 <section class="view active" id="viewCases">
@@ -1216,6 +1357,8 @@
     <div id="resultsFavorites"></div>
   </main>
 </section>
+
+<button type="button" id="topFab" class="top-fab" aria-label="Back to top" title="Back to top">&uarr;</button>
 
 <footer>
 
@@ -1746,6 +1889,7 @@ function setTab(activeBtnId){
     document.getElementById(t.view).classList.toggle("active", on);
   });
   if (activeBtnId === "tabFavorites" && typeof renderFavorites === "function") renderFavorites();
+  if (typeof window.__syncTabMenu === "function") window.__syncTabMenu();
 
   /* With a sticky tab bar you can now switch tabs from ANYWHERE on the page.
      Without this you'd land 2,800px deep in the new tab's list — or past its
@@ -1799,7 +1943,8 @@ function renderCallTypes(){
     if (n === 0) caseState.types.delete(ct.id);
     const label = document.createElement("label");
     label.className = "chk" + (n === 0 ? " disabled" : "");
-    label.innerHTML = `<input type="checkbox" value="${ct.id}"${n === 0 ? " disabled" : ""}${caseState.types.has(ct.id) ? " checked" : ""}><span>${ct.label}<span class="cnt">(${n})</span><small>${titleCase(ct.hint)}</small></span>`;
+    label.innerHTML = `<input type="checkbox" value="${ct.id}"${n === 0 ? " disabled" : ""}${caseState.types.has(ct.id) ? " checked" : ""}><span>${ct.label}<span class="cnt">(${n})</span></span>`;
+    label.title = titleCase(ct.hint);
     label.querySelector("input").addEventListener("change", e => {
       e.target.checked ? caseState.types.add(ct.id) : caseState.types.delete(ct.id);
       caseState.limit = PAGE_SIZE;
@@ -1930,7 +2075,8 @@ function renderCodeCats(){
     const label = document.createElement("label");
     label.className = "chk";
     const n = STATUTES.filter(s => (codeState.code === "all" || s.code === codeState.code) && s.cats.includes(ct.id)).length;
-    label.innerHTML = `<input type="checkbox" value="${ct.id}"${codeState.cats.has(ct.id) ? " checked" : ""}><span>${ct.label}<span class="cnt">(${n})</span><small>${titleCase(ct.hint)}</small></span>`;
+    label.innerHTML = `<input type="checkbox" value="${ct.id}"${codeState.cats.has(ct.id) ? " checked" : ""}><span>${ct.label}<span class="cnt">(${n})</span></span>`;
+    label.title = titleCase(ct.hint);
     label.querySelector("input").addEventListener("change", e => {
       e.target.checked ? codeState.cats.add(ct.id) : codeState.cats.delete(ct.id);
       codeState.limit = PAGE_SIZE;
@@ -2030,24 +2176,13 @@ function renderCodes(){
   `).join("") + codeControl + feedbackHTML("State Codes", codeState.kw);
 }
 
-/* ================= BACK TO TOP + HOME ================= */
-const topBtn = document.getElementById("topBtn");
-if (topBtn) {
-  let footerVisible = false;
-  const footerEl = document.querySelector("footer");
-  if (footerEl && "IntersectionObserver" in window) {
-    new IntersectionObserver(entries => {
-      footerVisible = entries[0].isIntersecting;
-      topBtn.classList.toggle("show", window.scrollY > 500 && !footerVisible);
-    }).observe(footerEl);
-  }
-  window.addEventListener("scroll", () => {
-    topBtn.classList.toggle("show", window.scrollY > 500 && !footerVisible);
-  }, { passive: true });
-  topBtn.addEventListener("click", () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  });
-}
+/* ================= BACK TO TOP + HOME =================
+   The old floating back-to-top button is GONE — element, CSS, and this handler.
+   position:fixed with no gutter to live in meant it always sat on top of
+   something: the filter panel's checkboxes on desktop, body text on a phone.
+   It is replaced by #topBtnBar, docked in the sticky bar next to the search box
+   (see the sticky-bar block), which obstructs nothing and follows the chosen
+   filter side. A scroll listener firing on every frame went with it. */
 const homeTitle = document.getElementById("homeTitle");
 if (homeTitle) {
   homeTitle.addEventListener("click", () => {
@@ -2099,7 +2234,8 @@ ARREST_CATS.forEach(ct => {
   const label = document.createElement("label");
   label.className = "chk";
   const n = ARREST.filter(a => a.tags.includes(ct.id)).length;
-  label.innerHTML = `<input type="checkbox" value="${ct.id}"><span>${ct.label}<span class="cnt">(${n})</span><small>${titleCase(ct.hint)}</small></span>`;
+  label.innerHTML = `<input type="checkbox" value="${ct.id}"><span>${ct.label}<span class="cnt">(${n})</span></span>`;
+  label.title = titleCase(ct.hint);
   label.querySelector("input").addEventListener("change", e => {
     e.target.checked ? arrestState.cats.add(ct.id) : arrestState.cats.delete(ct.id);
     arrestState.limit = PAGE_SIZE;
@@ -2192,7 +2328,8 @@ const doctrineCatLabel = id => (DOCTRINE_CATS.find(c => c.id === id) || {}).labe
     const n = DOCTRINES.filter(d => d.cat.includes(ct.id)).length;
     const label = document.createElement("label");
     label.className = "chk";
-    label.innerHTML = `<input type="checkbox" value="${ct.id}"><span>${ct.label}<span class="cnt">(${n})</span><small>${titleCase(ct.hint)}</small></span>`;
+    label.innerHTML = `<input type="checkbox" value="${ct.id}"><span>${ct.label}<span class="cnt">(${n})</span></span>`;
+    label.title = titleCase(ct.hint);
     label.querySelector("input").addEventListener("change", e => {
       e.target.checked ? doctrineState.cats.add(ct.id) : doctrineState.cats.delete(ct.id);
       doctrineState.limit = PAGE_SIZE;
@@ -2322,7 +2459,8 @@ function renderOrdinanceCats(){
     if (n === 0) ordState.cats.delete(ct.id);
     const label = document.createElement("label");
     label.className = "chk" + (n === 0 ? " disabled" : "");
-    label.innerHTML = `<input type="checkbox" value="${ct.id}"${n === 0 ? " disabled" : ""}${ordState.cats.has(ct.id) ? " checked" : ""}><span>${ct.label}<span class="cnt">(${n})</span><small>${titleCase(ct.hint)}</small></span>`;
+    label.innerHTML = `<input type="checkbox" value="${ct.id}"${n === 0 ? " disabled" : ""}${ordState.cats.has(ct.id) ? " checked" : ""}><span>${ct.label}<span class="cnt">(${n})</span></span>`;
+    label.title = titleCase(ct.hint);
     label.querySelector("input").addEventListener("change", e => {
       e.target.checked ? ordState.cats.add(ct.id) : ordState.cats.delete(ct.id);
       ordState.limit = PAGE_SIZE;
@@ -3099,18 +3237,87 @@ function clearGlobalSearchOnly(){
   globalSearchInnerClear.hidden = true;
   runGlobalSearchCycle("");
 }
-/* Compact the sticky bar once it is actually pinned. A sentinel above it is
-   cheaper and smoother than a scroll listener — no work on every scroll frame. */
+/* Sticky bar: pinned state, live height, and the collapsed tab menu.
+   A sentinel is cheaper than a scroll listener — no work on every scroll frame. */
 (function(){
   const bar = document.getElementById("stickyBar");
-  if (!bar || !("IntersectionObserver" in window)) return;
-  const sentinel = document.createElement("div");
-  sentinel.style.cssText = "position:absolute;top:0;height:1px;width:1px;pointer-events:none";
-  bar.parentNode.insertBefore(sentinel, bar);
-  new IntersectionObserver(
-    ([e]) => bar.classList.toggle("pinned", !e.isIntersecting),
-    { threshold: 0 }
-  ).observe(sentinel);
+  if (!bar) return;
+
+  /* Publish the bar's height so .callsheet can offset itself below it. It changes
+     between pinned/unpinned (compact styling) and across breakpoints, so measure
+     it live rather than hard-coding a number that will silently rot. */
+  const publishHeight = () =>
+    document.documentElement.style.setProperty("--bar-h", Math.round(bar.getBoundingClientRect().height) + "px");
+  publishHeight();
+  if ("ResizeObserver" in window) new ResizeObserver(publishHeight).observe(bar);
+  window.addEventListener("resize", publishHeight);
+
+  if ("IntersectionObserver" in window){
+    const sentinel = document.createElement("div");
+    sentinel.style.cssText = "position:absolute;top:0;height:1px;width:1px;pointer-events:none";
+    bar.parentNode.insertBefore(sentinel, bar);
+    new IntersectionObserver(([e]) => {
+      bar.classList.toggle("pinned", !e.isIntersecting);
+      publishHeight();                    // pinned styling changes the height
+    }, { threshold: 0 }).observe(sentinel);
+  }
+
+  /* ---- Collapsed tab menu (shown only while pinned) ---- */
+  const btn  = document.getElementById("tabMenuBtn");
+  const list = document.getElementById("tabMenuList");
+  const lbl  = document.getElementById("tabMenuLabel");
+  if (!btn || !list) return;
+
+  TABS.forEach(t => {
+    const src = document.getElementById(t.btn);
+    const item = document.createElement("button");
+    item.type = "button";
+    item.className = "tabmenu-item";
+    item.setAttribute("role", "menuitem");
+    item.dataset.tab = t.btn;
+    item.textContent = src.textContent.trim();
+    item.addEventListener("click", () => { setTab(t.btn); closeMenu(); btn.focus(); });
+    list.appendChild(item);
+  });
+
+  function syncMenu(){
+    const active = TABS.find(t => document.getElementById(t.btn).classList.contains("active"));
+    if (!active) return;
+    lbl.textContent = document.getElementById(active.btn).textContent.trim();
+    list.querySelectorAll(".tabmenu-item").forEach(i =>
+      i.setAttribute("aria-current", String(i.dataset.tab === active.btn)));
+  }
+  function openMenu(){ list.hidden = false; btn.setAttribute("aria-expanded","true"); }
+  function closeMenu(){ list.hidden = true;  btn.setAttribute("aria-expanded","false"); }
+
+  btn.addEventListener("click", e => {
+    e.stopPropagation();
+    list.hidden ? (syncMenu(), openMenu()) : closeMenu();
+  });
+  document.addEventListener("click", e => { if (!list.hidden && !e.target.closest("#tabMenu")) closeMenu(); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && !list.hidden){ closeMenu(); btn.focus(); } });
+
+  const topInBar = document.getElementById("topBtnBar");
+  if (topInBar) topInBar.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+
+  /* Floating back-to-top (desktop). Lives in a reserved lane, so it never sits
+     on text. Reveal it only once there is something to scroll back from, and
+     hide it over the footer where it would be pointless. */
+  const fab = document.getElementById("topFab");
+  if (fab){
+    fab.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+    let footerVisible = false;
+    const sync = () => fab.classList.toggle("show", window.scrollY > 400 && !footerVisible);
+    const footerEl = document.querySelector("footer");
+    if (footerEl && "IntersectionObserver" in window){
+      new IntersectionObserver(es => { footerVisible = es[0].isIntersecting; sync(); }).observe(footerEl);
+    }
+    window.addEventListener("scroll", sync, { passive: true });
+    sync();
+  }
+
+  window.__syncTabMenu = syncMenu;   // setTab calls this so the label never drifts
+  syncMenu();
 })();
 
 globalSearchInput.addEventListener("input", () => {
