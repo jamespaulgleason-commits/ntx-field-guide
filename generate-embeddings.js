@@ -108,7 +108,7 @@ for (const s of STATUTES) {
 }
 for (const c of CASES) {
   const tags = (c.tags||[]).map(t => catLabel(CALL_TYPES, t)).join(" ");
-  const text = [c.name, c.cite, tags, c.holding, (c.street||[]).join(" ")].join(" ");
+  const text = [c.name, c.cite, tags, c.holding, (c.street||[]).join(" "), CASE_KEYWORDS[c.name]||""].join(" ");
   rows.push({ type:"case", key:c.name, text });
 }
 for (const a of ARREST) {

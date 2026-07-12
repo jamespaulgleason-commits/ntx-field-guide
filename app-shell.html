@@ -1436,7 +1436,7 @@ const CASE_KEYWORDS = {
   "Rodriguez v. United States":"dog sniff k9 prolong extend duration mission seven eight minutes",
   "Whren v. United States":"pretext pretextual motive plainclothes traffic violation drugs",
   "Illinois v. Wardlow":"headlong flight ran high crime area unprovoked bag",
-  "Heien v. North Carolina":"mistake of law brake light one working",
+  "Heien v. North Carolina":"mistake of law brake light tail light one working busted broken pulled over stop was wrong the law did not actually require it reasonable mistake objectively reasonable misunderstanding of the statute good faith legal error still valid stop",
   "Utah v. Strieff":"outstanding warrant attenuation discovery drug house",
   "Schneckloth v. Bustamonte":"voluntary consent refuse warning totality knowledge",
   "Florida v. Jimeno":"scope container paper bag drugs consent car",
@@ -1451,7 +1451,7 @@ const CASE_KEYWORDS = {
   "Arizona v. Gant":"search incident vehicle reaching distance secured suspended license cocaine jacket",
   "Miranda v. Arizona":"custody custodial interrogation warnings rights silent counsel waiver",
   "Riley v. California":"cell phone search incident warrant digital gang photos",
-  "Carpenter v. United States":"csli cell site location data historical third party robberies",
+  "Carpenter v. United States":"csli cell site location information cell tower records historical location data phone company records place a suspect somewhere warrant required third party doctrine limit tracking movements over time",
   "Barnes v. Felix (on remand)":"totality remand fifth circuit application",
   "Estevis v. Cantu":"qualified immunity force fifth circuit",
   "United States v. Gonzalez":"search seizure fifth circuit suppression",
@@ -2536,6 +2536,32 @@ const SEM_ENABLED = EMBED_DIM > 0 && EMBED_VECS_B64.length > 0;
 const SEM_THRESHOLD = 0.35; // calibrated 2026-07-08 from a 35-query eval against all-MiniLM-L6-v2: correct matches clustered 0.35-0.73; below 0.35 was mostly noise. Raising this cuts good hits; lowering it admits junk.
 const SEM_MAX_EXTRA_PER_GROUP = 3; // cap on semantic-only additions per group
 
+/* ---- Ranking knobs, swept against EVAL-QUERIES.txt (35 officer-phrased queries).
+   Do not hand-tune these against ad-hoc examples: that is how v25 shipped a net
+   regression (fixed 3 queries, broke 4) while passing every test I invented. */
+const RANK = {
+  /* Corpus-wide IDF was tried and REJECTED: it discounts whatever is common,
+     and in "guy won't tell me his name on a stop" the common words ("name",
+     "stop") ARE the query. It dropped Failure to Identify from rank 1 to 15.
+     Swept against EVAL-QUERIES.txt: IDF was worse in every configuration. */
+  useIdf:   false,
+  semBase:  250,     // semantic score = semBase + semScale * cosine
+  semScale: 500,     // 0.35 -> 425, 0.7 -> 600
+  /* The real problem was never "common words" -- it was GRADING BOILERPLATE.
+     The haystack includes `level` and the verbatim `text`, both stuffed with
+     "state jail felony" / "Class A misdemeanor". After the v23 ladder rewrite
+     230+ entries contain the word "jail", so "jail" partial-matched a third of
+     the corpus and buried real hits. These words are metadata, not content:
+     they still count for an ALL-TERMS match, but contribute almost nothing to a
+     PARTIAL one. Surgical where IDF was blunt. */
+  boilerplateWeight: 0.15,
+};
+const RANK_BOILERPLATE = new Set([
+  "jail","felony","felonies","misdemeanor","misdemeanors","class","degree",
+  "punishable","offense","offenses","conviction","convicted","fine","penalty",
+  "state","code","section","chapter"
+]);
+
 let semVecs = null;       // Float32Array, rows laid out back-to-back
 let semExtractor = null;  // lazily-loaded transformers.js pipeline
 let semLoadFailed = false;
@@ -2804,15 +2830,30 @@ function scoreEntry(src, item, parsed){
   else if (ql.length >= 4 && phraseHit(hay, ql)){ score = 8000; kind = 'phrase'; }
   if (terms.length){
     let matched = 0, usedFuzzy = false;
-    for (const t of terms){
-      if (expandTerm(t).some(alt => termHits(hay, alt))) matched++;
-      else if (t.length >= 4 && !/\d/.test(t) && fuzzyTermHit(nameL, t)){ matched++; usedFuzzy = true; }  // cheap name-level typo tolerance
+    const hitFlags = new Array(terms.length).fill(false);
+    for (let i = 0; i < terms.length; i++){
+      const t = terms[i];
+      if (expandTerm(t).some(alt => termHits(hay, alt))){ matched++; hitFlags[i] = true; }
+      else if (t.length >= 4 && !/\d/.test(t) && fuzzyTermHit(nameL, t)){ matched++; hitFlags[i] = true; usedFuzzy = true; }  // cheap name-level typo tolerance
     }
     if (matched === terms.length){
       const s = 5000 + src.rel(item, ql);
       if (s > score){ score = s; kind = usedFuzzy ? 'fuzzy' : (kind || 'all'); }
     } else if (matched > 0 && !kind){
-      score = 1000 * (matched / terms.length) + src.rel(item, ql);
+      /* IDF-weighted, NOT a raw count. A term that appears in half the corpus
+         carries almost no information: "jail" hits every statute whose text
+         says "state jail felony" — which, since the v23 penalty-ladder rewrite,
+         is 230+ of them. Counting that as "1 of 2 terms matched" scored garbage
+         at 500 and buried genuinely relevant semantic hits.
+         parsed.idf[] is computed per query in runUnifiedSearch. */
+      let num = 0, den = 0;
+      for (let i = 0; i < terms.length; i++){
+        let w = RANK_BOILERPLATE.has(terms[i]) ? RANK.boilerplateWeight : 1;
+        if (RANK.useIdf && parsed.idf && parsed.idf[i] !== undefined) w = parsed.idf[i];
+        den += w;
+        if (hitFlags[i]) num += w;
+      }
+      score = 1000 * (den > 0 ? num / den : matched / terms.length) + src.rel(item, ql);
       kind = usedFuzzy ? 'fuzzy' : 'partial';
     }
   }
@@ -2831,9 +2872,31 @@ function scoreEntryFuzzy(src, item, parsed){
 
 /* Score every entry across all types; sort best-first. Typo pass runs only when
    strong matches are sparse, so it never floods good results with noise. */
+/* Document frequency per query term, so common legal boilerplate ("jail",
+   "felony", "misdemeanor", "class") stops dominating partial matches. Computed
+   once per query over the whole corpus — ~1k entries x a few terms, ~5 ms. */
+function computeIdf(parsed){
+  const terms = parsed.terms;
+  if (!terms.length) return;
+  const df = new Array(terms.length).fill(0);
+  let N = 0;
+  for (const src of GLOBAL_SEARCH_SOURCES){
+    for (const item of src.list()){
+      N++;
+      const hay = src.haystack(item);
+      for (let i = 0; i < terms.length; i++){
+        if (expandTerm(terms[i]).some(alt => termHits(hay, alt))) df[i]++;
+      }
+    }
+  }
+  const logN = Math.log(N || 1) || 1;
+  parsed.idf = df.map(d => Math.max(0.02, Math.log((N + 1) / (d + 1)) / logN));
+}
+
 function runUnifiedSearch(q){
   const parsed = parseQuery(q);
   if (!parsed.ql) return [];
+  if (RANK.useIdf) computeIdf(parsed);
   const scored = [], seen = new Set();
   for (const src of GLOBAL_SEARCH_SOURCES){
     for (const item of src.list()){
@@ -2857,17 +2920,34 @@ function runUnifiedSearch(q){
 /* Fold semantic hits into the scored list (tier 6 — capped below fuzzy). */
 function mergeSemanticUnified(scored, semanticRanked){
   if (!semanticRanked) return scored;
-  const seen = new Set(scored.map(r => r.src.type + '\u0000' + r.src.keyOf(r.item)));
+  /* Index by id so a semantic hit can UPGRADE an entry keyword already found.
+     Previously any entry keyword had touched was skipped outright — so an entry
+     that keyword scored as junk (one common word) could never be lifted by a
+     strong semantic match. §22.11 "gassing an officer" ranked 0.45 on meaning
+     for "guy is spitting on me in the jail", but keyword had already given it a
+     garbage partial score, and the semantic score was thrown away. */
+  const byId = new Map();
+  for (const r of scored) byId.set(r.src.type + '\u0000' + r.src.keyOf(r.item), r);
   const byType = new Map(GLOBAL_SEARCH_SOURCES.map(s => [s.type, s]));
   for (const r of semanticRanked){
     if (r.score < SEM_THRESHOLD) continue;
     const src = byType.get(r.type); if (!src) continue;
     const id = r.type + '\u0000' + r.key;
-    if (seen.has(id)) continue;
+    const semScore = RANK.semBase + r.score * RANK.semScale;
+    const existing = byId.get(id);
+    if (existing){
+      // Only ever lift, never lower: an exact/name/all match must keep its rank.
+      if (semScore > existing.score){ existing.score = semScore; existing.kind = 'semantic'; }
+      continue;
+    }
     const item = src.list().find(x => src.keyOf(x) === r.key);
     if (!item) continue;
-    seen.add(id);
-    scored.push({ src, item, score: 50 + r.score * 100, kind: 'semantic' });
+    byId.set(id, true);
+    /* Band 250-750. Sits ABOVE a weak IDF-discounted partial (a single common
+       word now scores ~130) but BELOW a strong partial, an all-terms match
+       (5000+), a phrase (8000+) and an exact section (100000). Exact still
+       always beats approximate — but "meaning" no longer loses to noise. */
+    scored.push({ src, item, score: semScore, kind: 'semantic' });
   }
   scored.sort((a, b) => b.score - a.score);
   return scored;

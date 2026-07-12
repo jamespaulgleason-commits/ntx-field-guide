@@ -9,7 +9,7 @@ const DOCTRINES = [
   {
     name:"Automobile Exception (Carroll Doctrine)", anchor:{name:"Carroll v. United States", cite:"267 U.S. 132 (1925)", court:"scotus"},
     also:"California v. Acevedo, 500 U.S. 565 (1991); Collins v. Virginia, 584 U.S. 586 (2018)", cat:["warrantexc"],
-    kw:"car vehicle trunk search probable cause no warrant containers mobility",
+    kw:"car vehicle trunk search probable cause no warrant containers mobility smell of marijuana odor of weed marihuana smell alone does the smell still justify a full vehicle search hemp vs marihuana THC probable cause to search the whole car",
     summary:"With probable cause to believe a vehicle contains contraband or evidence, officers may search it without a warrant — a rule resting on vehicles' ready mobility and the reduced expectation of privacy in them. The scope follows the object: officers may search any part of the vehicle and any container within it where the item sought could be, including passengers' containers (Houghton). Collins draws the boundary at the home: the exception does not permit entering curtilage (a driveway near the house, a carport) to reach the vehicle.",
     street:[
       "Probable cause substitutes for the warrant, but it must attach to the vehicle — articulate the PC before the search, not from what the search found.",
