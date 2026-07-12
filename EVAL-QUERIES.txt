@@ -1,0 +1,141 @@
+EVAL QUERIES — semantic search quality check
+================================================
+
+HOW TO USE THIS
+------------------
+Once real embeddings + self-hosted model files are in place (see
+MODEL-README.txt), type each query below into "Search Everything" and check
+whether the "Expected top hit" appears in the results — ideally in the top
+2-3, and ideally tagged "By meaning" if the keyword engine wouldn't have
+found it on its own.
+
+This is the actual test of whether this feature is worth shipping. Don't
+skip it. If a large fraction of these miss, raise/lower SEM_THRESHOLD in
+app-shell.html and re-test before relying on this for real callouts.
+
+Each query below is deliberately phrased the way an officer might actually
+say or type it — NOT using the entry's own statute name or exact wording —
+specifically to stress-test whether meaning-based matching beats the old
+keyword/synonym engine. A query that only works because it happens to share
+a literal word with the target entry doesn't prove much; these are chosen to
+avoid that.
+
+QUERIES
+----------
+
+1.  "guy won't tell me his name on a stop"
+    Expected: Failure to Identify (or nearest equivalent arrest/statute entry)
+
+2.  "found a baggie of white powder in his pocket, looked like cocaine"
+    Expected: Possession of Controlled Substance, Penalty Group 1 (§ 481.115)
+
+3.  "car search after towing it because it was stolen"
+    Expected: Automobile Exception (Carroll Doctrine) or inventory-search related entry
+
+4.  "guy ran when he saw me, high crime neighborhood, nothing else"
+    Expected: Illinois v. Wardlow
+
+5.  "dog sniffed the car during a traffic stop, took longer than expected"
+    Expected: Rodriguez v. United States
+
+6.  "shot at a fleeing suspect, unarmed, jumping a fence"
+    Expected: Tennessee v. Garner
+
+7.  "how much force is reasonable when someone resists"
+    Expected: Graham v. Connor
+
+8.  "wife called and said husband hit her, no marks visible"
+    Expected: Assault (family violence) and/or mandatory arrest for family violence entry
+
+9.  "vape pen with weird crystals, might be fake weed"
+    Expected: Penalty Group 2-A (synthetic cannabinoids / K2, Spice)
+
+10. "pulled over for a busted tail light, turned out the law didn't require it"
+    Expected: Heien v. North Carolina
+
+11. "consented to search but his girlfriend who also lives there said no"
+    Expected: Georgia v. Randolph
+
+12. "warrant came back active during a routine stop, found drugs after"
+    Expected: Utah v. Strieff
+
+13. "someone posting nude pics of an ex without consent"
+    Expected: closest revenge-porn / unlawful disclosure statute if present, else Electronic Transmission of Visual Material Depicting Minor (if adult-specific entry doesn't exist, this should surface the closest related entry, not a false-positive minor-specific charge)
+
+14. "guy camping under the overpass with a tent"
+    Expected: Prohibited Camping (§ 48.05)
+
+15. "found a fake temporary paper tag on a car that didn't match"
+    Expected: Wrong, Fictitious, Altered, or Obscured License Plate (§ 504.945)
+
+16. "kid was texting and swerving near the elementary school"
+    Expected: Wireless Communication Device in a School Crossing Zone (§ 545.425)
+
+17. "beer can rolling around under the passenger seat, opened"
+    Expected: Possession of Alcoholic Beverage in Motor Vehicle / Open Container (§ 49.031)
+
+18. "guy pointed a gun at someone during an argument, didn't fire"
+    Expected: Deadly Conduct (§ 22.05)
+
+19. "search of a phone after arrest without a warrant"
+    Expected: Riley v. California
+
+20. "cell tower records to place a suspect somewhere without a warrant"
+    Expected: Carpenter v. United States
+
+21. "person having a mental health crisis, threatening to hurt themselves"
+    Expected: Emergency Detention by Peace Officer (§ 573.001)
+
+22. "entered a house without a warrant because we heard a kid screaming inside"
+    Expected: Brigham City v. Stuart or Case v. Montana (emergency aid doctrine)
+
+23. "chased a guy into his garage for a misdemeanor"
+    Expected: Lange v. California
+
+24. "knocked on a door, smelled weed, worried they'd flush it"
+    Expected: Kentucky v. King
+
+25. "searched the car after arresting the driver, he was already cuffed in the back seat"
+    Expected: Arizona v. Gant
+
+26. "does silence count as invoking your rights during an interrogation"
+    Expected: Miranda v. Arizona
+
+27. "someone selling counterfeit prescription pills that aren't controlled substances"
+    Expected: Delivery or Offer of Delivery of Dangerous Drug (§ 483.042) or Forging/Altering a Prescription (§ 483.045)
+
+28. "third DUI-adjacent stop, driver still driving on a suspended license"
+    Expected: Driving While License Invalid (§ 521.457)
+
+29. "guy huffing computer duster to get high"
+    Expected: Possession and Use of Abusable Volatile Chemical (§ 485.031)
+
+30. "motorcycle rider with no helmet, said he's over 21"
+    Expected: Offenses Relating to Not Wearing Protective Headgear (§ 661.003)
+
+31. "someone swatted a house, called in a fake hostage situation"
+    Expected: closest false-report/swatting-related entry
+
+32. "officer wants free online training that doesn't need his department's login"
+    Expected: one or more Training tab entries (Classen-Buck, OSS Academy, Virtual Academy, or TRN)
+
+33. "civilian filmed us during an arrest, can they do that"
+    Expected: closest doctrine/entry addressing recording of officers, if one exists — otherwise confirm no false-positive dominates
+
+34. "does the smell of marijuana alone justify a full vehicle search now"
+    Expected: Automobile Exception (Carroll Doctrine), possibly cross-referenced with current hemp-vs-marihuana distinction note in § 481.121
+
+35. "found a stolen firearm in a car during a traffic stop, driver on probation"
+    Expected: could span several entries (UUV, Unlawful Carrying Weapons, Automobile Exception) — check that the results are sensibly split, not just one dominant false match
+
+NOTES FOR CALIBRATION
+------------------------
+Queries 13, 22, 31, and 33 are intentionally "does an entry like this even
+exist yet" tests — a legitimate result there might be "no great match," and
+that's fine information, not a failure. What matters is that the app doesn't
+confidently hand back something unrelated in those cases.
+
+If several queries above return zero "By meaning" tags at all even though
+plain-keyword search also comes up empty, that likely means SEM_ENABLED is
+false (embeddings/model not wired up yet) rather than a quality problem —
+check that before concluding the threshold needs adjusting.
