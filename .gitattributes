@@ -1,0 +1,13 @@
+# Line-ending policy.
+# Git on Windows converts LF -> CRLF on checkout, which rewrites the bytes
+# of every source file and changes the `data` hash in the build stamp.
+# A fresh clone would then build to a different hash than production for no
+# reason but line endings, and the fingerprint would stop meaning anything.
+# So: no conversion anywhere in this repo.
+*               -text
+*.ttf           binary
+*.wasm          binary
+*.onnx          binary
+*.png           binary
+*.ico           binary
+*.zip           binary
