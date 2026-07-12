@@ -233,7 +233,7 @@ if (DATA) {
            drug-free-zone enhancements) borrow their grade from the underlying offense.
            "One category lower than the object felony" is CORRECT and must not be
            forced into a fixed range. */
-        if(/one (category|grade) (lower|higher)|punishment enhancement/i.test(e.level)) continue;
+        if(/one (category|grade) (lower|higher|above|below)|punishment enhancement/i.test(e.level)) continue;
         const st=statTop(e.text), lv=topOf(e.level,LVL);
         if(st<0||lv<0) continue;
         if(st>lv){ bad++;

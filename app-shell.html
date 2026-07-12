@@ -2550,21 +2550,86 @@ function decodeSemVecs(){
   return semVecs;
 }
 
-/* Self-hosted only — never fetches from the Hugging Face CDN at runtime.
-   See MODEL-README.txt for what has to be downloaded into ./vendor/ and
-   ./models/ before this can succeed. */
+/* ---------- Embedding the query: worker first, main thread as fallback ----------
+   The model is a 10 MB WASM runtime + a 23 MB ONNX file. Loading and running it
+   on the main thread froze the UI for ~1.4s on the FIRST semantic query — right
+   when the officer is typing. It has no business there: keyword results already
+   render instantly, and the semantic pass only ever ADDS to them.
+
+   So the pipeline lives in sem-worker.js. If the worker can't start (older
+   Safari, blocked module workers), we fall back to the old in-thread path so
+   semantic search degrades to "works, but janky" rather than "gone". */
+let semWorker = null;
+let semWorkerDead = false;
+let semReqId = 0;
+const semPending = new Map();
+
+function getSemWorker(){
+  if (semWorker || semWorkerDead) return semWorker;
+  try {
+    semWorker = new Worker("./sem-worker.js", { type: "module" });
+    semWorker.onmessage = (e) => {
+      const { id, ok, vec, err } = e.data || {};
+      const p = semPending.get(id);
+      if (!p) return;
+      semPending.delete(id);
+      ok ? p.resolve(vec) : p.reject(new Error(err));
+    };
+    semWorker.onerror = () => {                      // worker itself failed to boot
+      semWorkerDead = true;
+      for (const p of semPending.values()) p.reject(new Error("worker failed"));
+      semPending.clear();
+      semWorker = null;
+    };
+  } catch (e) {
+    semWorkerDead = true;
+  }
+  return semWorker;
+}
+
+function embedInWorker(query){
+  const w = getSemWorker();
+  if (!w) return Promise.reject(new Error("no worker"));
+  const id = ++semReqId;
+  return new Promise((resolve, reject) => {
+    semPending.set(id, { resolve, reject });
+    w.postMessage({ id, query, model: EMBED_MODEL });
+  });
+}
+
+/* Fallback only. Self-hosted — never fetches from the Hugging Face CDN. */
 async function ensureSemExtractor(){
   if (semExtractor || semLoadFailed || !SEM_ENABLED) return semExtractor;
   try {
     const { pipeline, env } = await import("./vendor/transformers.min.js");
     env.allowRemoteModels = false;
     env.localModelPath = "./models/";
+    /* CRITICAL — without this, transformers.js defaults ORT's wasmPaths to
+       cdn.jsdelivr.net and fetches the 10 MB runtime from a THIRD PARTY at
+       runtime. That silently breaks semantic search offline, which is the whole
+       point of this app: an officer in a patrol car with no signal got keyword
+       search only and no indication anything was missing. The vendored copy in
+       ./vendor/ was precached and never used. Pin it. */
+    env.backends.onnx.wasm.wasmPaths = new URL("./vendor/", location.href).href;
+    env.backends.onnx.wasm.numThreads = 1;
     semExtractor = await pipeline("feature-extraction", EMBED_MODEL, { quantized: true });
   } catch (e) {
     console.warn("Semantic search unavailable (falling back to keyword search only):", e);
     semLoadFailed = true;
   }
   return semExtractor;
+}
+
+/* Returns a Float32Array(384) for the query, or null if semantic is unavailable. */
+async function embedQuery(query){
+  if (!semWorkerDead){
+    try { return await embedInWorker(query); }
+    catch (e) { semWorkerDead = true; console.warn("Semantic worker unavailable; running on the main thread:", e.message); }
+  }
+  const extractor = await ensureSemExtractor();
+  if (!extractor) return null;
+  const out = await extractor(query, { pooling: "mean", normalize: true });
+  return out.data;
 }
 
 function cosine(vecs, rowOffset, q){
@@ -2578,12 +2643,11 @@ function cosine(vecs, rowOffset, q){
    to keyword-only ranking", never as "no results". */
 async function semanticRank(query){
   if (!SEM_ENABLED || !query || query.trim().length < 3) return null;
-  const firstLoad = !semExtractor && !semLoadFailed;
-  const extractor = await ensureSemExtractor();
-  if (!extractor) return null;
+  const q = await embedQuery(query);
+  if (!q) return null;
+  // Cosine scoring stays on the main thread: 1,022 x 384 dot products is ~2 ms,
+  // and shipping 2 MB of vectors into the worker would cost more than it saves.
   const vecs = decodeSemVecs();
-  const out = await extractor(query, { pooling: "mean", normalize: true });
-  const q = out.data;
   const scored = EMBED_INDEX.map((row, i) => ({
     type: row.type, key: row.key, score: cosine(vecs, i * EMBED_DIM, q)
   }));

@@ -20,10 +20,11 @@
   the next activate, so this is the whole update mechanism for the PWA —
   no build step needs to touch this file itself, just the version string.
 */
-const CACHE_VERSION = "fieldguide-v23";
+const CACHE_VERSION = "fieldguide-v24";
 
 const CORE_ASSETS = [
   "./index.html",
+  "./sem-worker.js",
   "./fonts/spectral-500.ttf",
   "./fonts/spectral-600.ttf",
   "./fonts/public-sans-400.ttf",
