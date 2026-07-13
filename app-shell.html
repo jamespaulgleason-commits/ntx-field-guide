@@ -1915,11 +1915,32 @@ function ladderTableHTML(rows){
   return `<div class="gradeladder"><div class="gl-label">Punishment Ladder</div><table>${rows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join("")}</table><div class="gl-note">Ladder amounts and grades are drafted for quick reference — verify against the current statute before relying on them.</div></div>`;
 }
 
-/* Link to the full opinion: Justia for settled U.S. Reports citations, Google Scholar otherwise */
+/* Link to the full opinion.
+   Settled U.S. Reports citations get a DIRECT Justia link to the opinion itself.
+   Everything else falls back to a Google Scholar search — but that search must name
+   the RIGHT court and include the CITATION. It previously hard-coded "fifth circuit"
+   for every non-SCOTUS case, so the 4th Circuit and 9th Circuit entries pointed a
+   reader at a search for the wrong court entirely. */
+function opinionCourtLabel(c){
+  if (c.court === "scotus") return "supreme court";
+  const cc = circuitOf(c.court);
+  return cc ? cc.label : "";          // "5th Circuit", "4th Circuit", "9th Circuit"
+}
+/* Justia deep-links by PAGE for older volumes (/us/484/19/) but by DOCKET NUMBER
+   for recent ones (/us/585/16-402/ for Carpenter), because those were published
+   before the official U.S. Reports pagination existed. The old cutoff of 600 was
+   wrong: it generated /us/585/296/ and /us/588/840/, which 404. Verified
+   page-based through volume 575 (Rodriguez, 2015); docket-based by 585 (2018).
+   Anything at or above 576 falls back to Google Scholar, which always resolves. */
+const JUSTIA_MAX_PAGED_VOLUME = 575;
 function opinionLink(c){
   const m = c.cite.match(/^(\d+)\s+U\.S\.\s+(\d+)/);
-  if (m && parseInt(m[1], 10) < 600) return `https://supreme.justia.com/cases/federal/us/${m[1]}/${m[2]}/`;
-  return `https://scholar.google.com/scholar?q=${encodeURIComponent('"' + c.name.replace(" (on remand)","") + '" ' + (c.court === "scotus" ? "supreme court" : "fifth circuit"))}`;
+  if (m && parseInt(m[1], 10) <= JUSTIA_MAX_PAGED_VOLUME){
+    return `https://supreme.justia.com/cases/federal/us/${m[1]}/${m[2]}/`;
+  }
+  // Include the citation — a name alone can collide (there are several "United States v. Smith").
+  const q = '"' + c.name.replace(" (on remand)", "") + '" ' + c.cite.replace(/\s*\(.*$/, "") + " " + opinionCourtLabel(c);
+  return `https://scholar.google.com/scholar?q=${encodeURIComponent(q.trim())}`;
 }
 
 /* ================= TABS ================= */

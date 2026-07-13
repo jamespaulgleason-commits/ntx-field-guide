@@ -204,8 +204,8 @@ if (DATA) {
   {
     const ORDER=["MC","MB","MA","SJF","F3","F2","F1","CAP"];
     const NM={MC:"Class C",MB:"Class B",MA:"Class A",SJF:"state jail felony",F3:"3rd-degree",F2:"2nd-degree",F1:"1st-degree",CAP:"capital felony"};
-    const TXT=[["CAP",/capital felony/i],["F1",/felony of the first degree/i],["F2",/felony of the second degree/i],
-      ["F3",/felony of the third degree/i],["SJF",/state jail felony/i],["MA",/Class A misdemeanor/i],
+    const TXT=[["CAP",/capital felony/i],["F1",/felony of the first degree|first degree felony/i],["F2",/felony of the second degree|second degree felony/i],
+      ["F3",/felony of the third degree|third degree felony/i],["SJF",/state jail felony/i],["MA",/Class A misdemeanor/i],
       ["MB",/Class B misdemeanor/i],["MC",/Class C misdemeanor/i]];
     /* The level field uses shorthand: "2nd with prior", "F3 against elderly",
        "Class C / B / A". Match all of it, or the guard fires on correct entries
@@ -258,6 +258,28 @@ if (DATA) {
         err(`ORDINANCE TIER: ${o.ord} is badged "c" but its level reaches a Class A/B grade — should be "l" (ladder) or "m"`); }
     }
     if(!obad) console.log("  ordinance badges match their actual penalty tier ✓");
+
+    /* ---- Truncated verbatim text ----
+       A Penal Code offence states its own grade. If the verbatim text we hold
+       contains NO grade at all, the text is almost certainly truncated — the
+       penalty subsection was cut off. Two consequences:
+         1. The officer expanding "VERBATIM STATUTORY TEXT" reads an incomplete statute.
+         2. The penalty-ladder guard above CANNOT check that entry, because there is
+            nothing in the text to compare the level against. It is a blind spot.
+       Warn, don't fail: fixing it needs the official source, not a code change. */
+    /* The code phrases it BOTH ways: "felony of the third degree" and "a third degree
+       felony". Matching only the first reported §33.022 as truncated when it was fine. */
+    const GRADE_RE = /Class [ABC] misdemeanor|state jail felony|felony of the (first|second|third) degree|(first|second|third) degree felony|capital felony/i;
+    const RELATIVE_RE = /same degree as|one (category|grade) (lower|higher|above|below)/i;
+    let trunc = 0;
+    for (const st of (DATA.STATUTES||[])){
+      if (!st.text || st.lvlClass === "p") continue;
+      if (!/^Penal Code/.test(st.sec || "")) continue;      // Transp. fine-only offences get their grade elsewhere, legitimately
+      if (GRADE_RE.test(st.text) || RELATIVE_RE.test(st.text)) continue;
+      trunc++;
+      warn(`TRUNCATED TEXT: ${st.sec} — verbatim text states no grade (${st.text.length} chars). The penalty subsection is probably missing, and the level cannot be machine-verified.`);
+    }
+    if (!trunc) console.log("  every Penal Code offence's verbatim text contains its own grade ✓");
   }
 
   /* ---- Report ---- */
