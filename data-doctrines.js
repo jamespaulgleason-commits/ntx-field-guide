@@ -30,9 +30,9 @@ const DOCTRINES = [
   },
   {
     name:"Terry Doctrine (Stop & Frisk)", anchor:{name:"Terry v. Ohio", cite:"392 U.S. 1 (1968)", court:"scotus"},
-    also:"Minnesota v. Dickerson, 508 U.S. 366 (1993); Illinois v. Wardlow, 528 U.S. 119 (2000)", cat:["warrantexc"],
+    also:"Minnesota v. Dickerson, 508 U.S. 366 (1993); Illinois v. Wardlow, 528 U.S. 119 (2000); Florida v. Royer, 460 U.S. 491 (1983); United States v. Sokolow, 490 U.S. 1 (1989)", cat:["warrantexc"],
     kw:"reasonable suspicion detention frisk patdown armed dangerous investigative stop",
-    summary:"Reasonable suspicion — specific, articulable facts that criminal activity may be afoot — permits a brief investigative detention; separate reasonable suspicion that the person is armed and dangerous permits a limited pat-down of outer clothing for weapons. The stop must be temporary, last no longer than necessary, and use the least intrusive means reasonably available to confirm or dispel the suspicion.",
+    summary:"Reasonable suspicion — specific, articulable facts that criminal activity may be afoot — permits a brief investigative detention; separate reasonable suspicion that the person is armed and dangerous permits a limited pat-down of outer clothing for weapons. The stop must be temporary, last no longer than necessary to confirm or dispel the suspicion, and be carefully tailored in scope to its underlying justification (Florida v. Royer) — but the availability of a less intrusive technique does not by itself make the stop unreasonable (United States v. Sokolow).",
     street:[
       "Two separate justifications: articulate the stop and the frisk independently — a lawful stop does not automatically authorize a frisk.",
       "The frisk is for weapons; manipulating a felt object to identify it as contraband exceeds Terry (see Plain Feel).",
@@ -67,7 +67,7 @@ const DOCTRINES = [
     kw:"consent voluntary permission scope withdraw refuse authority",
     summary:"Voluntary consent from a person with actual or apparent authority permits a warrantless search within the scope a reasonable person would understand the exchange to cover. Voluntariness is judged on the totality of the circumstances (no Miranda-style warning of the right to refuse is required), authority questions run through Rodriguez and Randolph, and the consenting party may limit or revoke at any time.",
     street:[
-      "The full framework lives in Vols. 5's four questions: voluntary? authorized? within scope? still in effect?",
+      "Run the four questions every time: voluntary? authorized? within scope? still in effect?",
       "State the object of your search when you ask — it defines the scope you get.",
       "Record the request and the answer; BWC audio of consent wins more suppression hearings than any report language."
     ]

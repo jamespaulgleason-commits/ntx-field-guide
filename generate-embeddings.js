@@ -95,6 +95,7 @@ const DOCTRINE_CATS  = loadArray("data-doctrines.js",  "DOCTRINE_CATS");
 const ORDINANCES     = loadArray("data-ordinances.js", "ORDINANCES");
 const ORDINANCE_CATS = loadArray("data-ordinances.js", "ORDINANCE_CATS");
 const TRAINING       = loadArray("data-training.js",   "TRAINING");
+const CASE_KEYWORDS  = loadArray("app-shell.html",     "CASE_KEYWORDS");
 
 const catLabel = (cats, id) => (cats.find(c => c.id === id) || {}).label || id;
 
